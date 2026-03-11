@@ -30,7 +30,7 @@ export interface DecisionRow {
   commitment: string;
   type: string;
   confidence: number;
-  embedding: Buffer | null;
+  embedding: Uint8Array | null;
   source: string;
   created_at: number;
 }
@@ -226,4 +226,87 @@ export interface Logger {
   warn(message: string, meta?: Record<string, unknown>): void;
   error(message: string, meta?: Record<string, unknown>): void;
   debug(message: string, meta?: Record<string, unknown>): void;
+}
+
+// ── v2: Hook Types ──────────────────────────────────────────
+
+export interface HookInput {
+  session_id: string;
+  transcript_path: string;
+  cwd: string;
+  hook_event_name: string;
+  stop_hook_active?: boolean;
+}
+
+// ── v2: Transcript Types ────────────────────────────────────
+
+export interface TranscriptMessage {
+  type: 'user' | 'assistant';
+  message: {
+    role: string;
+    content: string | Array<{ type: string; text?: string }>;
+  };
+  timestamp: string;
+}
+
+// ── v2: Rot Score Types ─────────────────────────────────────
+
+export type RotLevel = 'green' | 'yellow' | 'red';
+
+export interface RotScore {
+  contradictionScore: number;
+  repetitionScore: number;
+  saturationScore: number;
+  combined: number;
+  level: RotLevel;
+  turn: number;
+}
+
+export interface RotScoreRow {
+  id: string;
+  session_id: string;
+  turn: number;
+  contradiction_score: number;
+  repetition_score: number;
+  saturation_score: number;
+  combined_score: number;
+  created_at: number;
+}
+
+// ── v2: Handoff Types ───────────────────────────────────────
+
+export interface HandoffData {
+  projectName: string;
+  decisions: string[];
+  completed: string[];
+  inProgress: string[];
+  unresolved: string[];
+}
+
+export interface HandoffRow {
+  id: string;
+  session_id: string;
+  project_path: string;
+  prompt: string;
+  created_at: number;
+}
+
+// ── v2: Scan Types ──────────────────────────────────────────
+
+export interface ScanViolation {
+  filePath: string;
+  line: number;
+  decision: string;
+  found: string;
+}
+
+export interface ScanPattern {
+  /** Keywords in the decision commitment that trigger this pattern */
+  decisionKeywords: string[];
+  /** File patterns to scan (globs) */
+  fileGlobs: string[];
+  /** Regex patterns to find violations in file content */
+  violationPatterns: RegExp[];
+  /** Human-readable description of what's being detected */
+  description: string;
 }

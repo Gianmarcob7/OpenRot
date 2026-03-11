@@ -1,12 +1,14 @@
-import type Database from 'better-sqlite3';
+import type { Database } from 'sql.js';
 import type { Warning, WarningRow } from '../types.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export class WarningStore {
-  private db: Database.Database;
+  private db: Database;
+  private save: () => void;
 
-  constructor(db: Database.Database) {
+  constructor(db: Database, save: () => void = () => {}) {
     this.db = db;
+    this.save = save;
   }
 
   create(
@@ -27,12 +29,10 @@ export class WarningStore {
       createdAt: Date.now(),
     };
 
-    this.db
-      .prepare(
-        `INSERT INTO warnings (id, session_id, current_turn, prior_decision_id, confidence, reason, dismissed, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
+    this.db.run(
+      `INSERT INTO warnings (id, session_id, current_turn, prior_decision_id, confidence, reason, dismissed, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
         warning.id,
         warning.sessionId,
         warning.currentTurn,
@@ -41,52 +41,68 @@ export class WarningStore {
         warning.reason,
         warning.dismissed ? 1 : 0,
         warning.createdAt,
-      );
+      ],
+    );
+    this.save();
 
     return warning;
   }
 
   getById(id: string): Warning | null {
-    const row = this.db.prepare('SELECT * FROM warnings WHERE id = ?').get(id) as
-      | WarningRow
-      | undefined;
-
-    if (!row) return null;
-    return this.rowToWarning(row);
+    const results = this.db.exec('SELECT * FROM warnings WHERE id = ?', [id]);
+    if (!results.length || !results[0].values.length) return null;
+    return this.rowToWarning(this.mapRow(results[0].columns, results[0].values[0]));
   }
 
   getBySessionId(sessionId: string): Warning[] {
-    const rows = this.db
-      .prepare('SELECT * FROM warnings WHERE session_id = ? ORDER BY created_at DESC')
-      .all(sessionId) as WarningRow[];
-
-    return rows.map((row) => this.rowToWarning(row));
+    const results = this.db.exec(
+      'SELECT * FROM warnings WHERE session_id = ? ORDER BY created_at DESC',
+      [sessionId],
+    );
+    if (!results.length) return [];
+    return results[0].values.map((row) =>
+      this.rowToWarning(this.mapRow(results[0].columns, row)),
+    );
   }
 
   getActiveBySessionId(sessionId: string): Warning[] {
-    const rows = this.db
-      .prepare(
-        'SELECT * FROM warnings WHERE session_id = ? AND dismissed = 0 ORDER BY created_at DESC',
-      )
-      .all(sessionId) as WarningRow[];
-
-    return rows.map((row) => this.rowToWarning(row));
+    const results = this.db.exec(
+      'SELECT * FROM warnings WHERE session_id = ? AND dismissed = 0 ORDER BY created_at DESC',
+      [sessionId],
+    );
+    if (!results.length) return [];
+    return results[0].values.map((row) =>
+      this.rowToWarning(this.mapRow(results[0].columns, row)),
+    );
   }
 
   dismiss(id: string): boolean {
-    const result = this.db.prepare('UPDATE warnings SET dismissed = 1 WHERE id = ?').run(id);
-    return result.changes > 0;
+    this.db.run('UPDATE warnings SET dismissed = 1 WHERE id = ?', [id]);
+    const changed = this.db.getRowsModified();
+    if (changed > 0) this.save();
+    return changed > 0;
   }
 
   countBySessionId(sessionId: string): number {
-    const row = this.db
-      .prepare('SELECT COUNT(*) as count FROM warnings WHERE session_id = ?')
-      .get(sessionId) as { count: number };
-    return row.count;
+    const results = this.db.exec(
+      'SELECT COUNT(*) as count FROM warnings WHERE session_id = ?',
+      [sessionId],
+    );
+    if (!results.length || !results[0].values.length) return 0;
+    return results[0].values[0][0] as number;
   }
 
   deleteBySessionId(sessionId: string): void {
-    this.db.prepare('DELETE FROM warnings WHERE session_id = ?').run(sessionId);
+    this.db.run('DELETE FROM warnings WHERE session_id = ?', [sessionId]);
+    this.save();
+  }
+
+  private mapRow(columns: string[], values: unknown[]): WarningRow {
+    const row: Record<string, unknown> = {};
+    columns.forEach((col, i) => {
+      row[col] = values[i];
+    });
+    return row as unknown as WarningRow;
   }
 
   private rowToWarning(row: WarningRow): Warning {

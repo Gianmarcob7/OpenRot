@@ -1,0 +1,30 @@
+﻿Usage: openrot [options] [command]
+
+Real-time AI session health scoring. Detects when output quality is degrading.
+
+Options:
+  -V, --version          output the version number
+  -h, --help             display help for command
+
+Commands:
+  analyze                Stop hook ΓÇö score session health (called by Claude
+                         Code)
+  session-start          SessionStart hook ΓÇö initialize session (called by
+                         Claude Code)
+  pre-compact            PreCompact hook ΓÇö save snapshot before context
+                         compaction
+  init                   Set up OpenRot (auto-detects editors, registers hooks)
+  handoff [options]      Generate fresh start prompt from current/last session
+  sync                   Sync decisions to all editor instruction files
+  scan [options] [path]  Scan codebase against stored decisions
+  guard [options]        Install/remove pre-commit hook
+  recap                  Generate session summary/journal entry
+  status                 Show current session health and decisions
+  serve                  Start the MCP server (for Cursor/VS Code/Antigravity)
+  config                 Change settings
+  test                   Verify everything works
+  model [options]        Switch model provider and model
+  inject [options]       Inject/remove OpenRot instructions into editor
+                         instruction files
+  reset [options]        Clear session data
+  help [command]         display help for command

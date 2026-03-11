@@ -1,5 +1,5 @@
 import type { Decision, ExtractionResult, ContradictionResult, ModelClient, PipelineResult, CheckOutput } from './types.js';
-import type Database from 'better-sqlite3';
+import type { Database } from 'sql.js';
 import { extractDecisions, generateEmbedding } from './extract/index.js';
 import { scoreContradictions } from './score/index.js';
 import { DecisionStore } from './db/decisions.js';
@@ -7,11 +7,12 @@ import { WarningStore } from './db/warnings.js';
 import type { ExtractionMode } from './extract/index.js';
 
 interface PipelineOptions {
-  db: Database.Database;
+  db: Database;
   modelClient: ModelClient | null;
   extractionMode: ExtractionMode;
   threshold: number;
   sensitivity: 'low' | 'medium' | 'high';
+  saveFn?: () => void;
 }
 
 // Track whether we've shown the first-run explanation
@@ -31,8 +32,9 @@ export async function processTurn(
   message: string,
   options: PipelineOptions,
 ): Promise<CheckOutput> {
-  const decisionStore = new DecisionStore(options.db);
-  const warningStore = new WarningStore(options.db);
+  const saveFn = options.saveFn || (() => {});
+  const decisionStore = new DecisionStore(options.db, saveFn);
+  const warningStore = new WarningStore(options.db, saveFn);
 
   // Step 1: Extract decisions from this message
   let newExtractions: ExtractionResult[] = [];

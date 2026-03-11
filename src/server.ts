@@ -4,7 +4,7 @@ import {
   CallToolRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { getDatabase, closeDatabase } from './db/index.js';
+import { getDb, closeDb, saveToFile } from './db/index.js';
 import { SessionStore } from './db/sessions.js';
 import { DecisionStore } from './db/decisions.js';
 import { WarningStore } from './db/warnings.js';
@@ -36,9 +36,9 @@ export async function startServer(): Promise<void> {
 
   // Load config
   let config = await loadConfig();
-  let db: ReturnType<typeof getDatabase>;
+  let db: Awaited<ReturnType<typeof getDb>>;
   try {
-    db = getDatabase();
+    db = await getDb();
   } catch (error) {
     logger.error('Failed to open database', { error: String(error) });
     process.exit(1);
@@ -54,9 +54,9 @@ export async function startServer(): Promise<void> {
     }
   }
 
-  const sessionStore = new SessionStore(db);
-  const decisionStore = new DecisionStore(db);
-  const warningStore = new WarningStore(db);
+  const sessionStore = new SessionStore(db, saveToFile);
+  const decisionStore = new DecisionStore(db, saveToFile);
+  const warningStore = new WarningStore(db, saveToFile);
 
   // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
@@ -160,6 +160,7 @@ export async function startServer(): Promise<void> {
             extractionMode,
             threshold: config.threshold,
             sensitivity: config.sensitivity,
+            saveFn: saveToFile,
           });
 
           if (result.hasWarning) {
@@ -264,12 +265,12 @@ export async function startServer(): Promise<void> {
 
   // Handle graceful shutdown
   process.on('SIGINT', () => {
-    closeDatabase();
+    closeDb();
     process.exit(0);
   });
 
   process.on('SIGTERM', () => {
-    closeDatabase();
+    closeDb();
     process.exit(0);
   });
 

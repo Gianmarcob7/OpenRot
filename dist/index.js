@@ -145,8 +145,8 @@ var require_windows = __commonJS({
     init_esm_shims();
     module.exports = isexe;
     isexe.sync = sync;
-    var fs10 = __require("fs");
-    function checkPathExt(path12, options) {
+    var fs17 = __require("fs");
+    function checkPathExt(path18, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -157,25 +157,25 @@ var require_windows = __commonJS({
       }
       for (var i = 0; i < pathext.length; i++) {
         var p = pathext[i].toLowerCase();
-        if (p && path12.substr(-p.length).toLowerCase() === p) {
+        if (p && path18.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path12, options) {
+    function checkStat(stat, path18, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path12, options);
+      return checkPathExt(path18, options);
     }
-    function isexe(path12, options, cb) {
-      fs10.stat(path12, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path12, options));
+    function isexe(path18, options, cb) {
+      fs17.stat(path18, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path18, options));
       });
     }
-    function sync(path12, options) {
-      return checkStat(fs10.statSync(path12), path12, options);
+    function sync(path18, options) {
+      return checkStat(fs17.statSync(path18), path18, options);
     }
   }
 });
@@ -187,14 +187,14 @@ var require_mode = __commonJS({
     init_esm_shims();
     module.exports = isexe;
     isexe.sync = sync;
-    var fs10 = __require("fs");
-    function isexe(path12, options, cb) {
-      fs10.stat(path12, function(er, stat) {
+    var fs17 = __require("fs");
+    function isexe(path18, options, cb) {
+      fs17.stat(path18, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path12, options) {
-      return checkStat(fs10.statSync(path12), options);
+    function sync(path18, options) {
+      return checkStat(fs17.statSync(path18), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -220,7 +220,7 @@ var require_isexe = __commonJS({
   "node_modules/isexe/index.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var fs10 = __require("fs");
+    var fs17 = __require("fs");
     var core;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
       core = require_windows();
@@ -229,7 +229,7 @@ var require_isexe = __commonJS({
     }
     module.exports = isexe;
     isexe.sync = sync;
-    function isexe(path12, options, cb) {
+    function isexe(path18, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -239,7 +239,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path12, options || {}, function(er, is) {
+          isexe(path18, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -248,7 +248,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path12, options || {}, function(er, is) {
+      core(path18, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -258,9 +258,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path12, options) {
+    function sync(path18, options) {
       try {
-        return core.sync(path12, options || {});
+        return core.sync(path18, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -278,7 +278,7 @@ var require_which = __commonJS({
     "use strict";
     init_esm_shims();
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path12 = __require("path");
+    var path18 = __require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -316,7 +316,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path12.join(pathPart, cmd);
+        const pCmd = path18.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i, 0));
       });
@@ -343,7 +343,7 @@ var require_which = __commonJS({
       for (let i = 0; i < pathEnv.length; i++) {
         const ppRaw = pathEnv[i];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path12.join(pathPart, cmd);
+        const pCmd = path18.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -393,7 +393,7 @@ var require_resolveCommand = __commonJS({
   "node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var path12 = __require("path");
+    var path18 = __require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -411,7 +411,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env3[getPathKey({ env: env3 })],
-          pathExt: withoutPathExt ? path12.delimiter : void 0
+          pathExt: withoutPathExt ? path18.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -420,7 +420,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path12.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path18.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -477,8 +477,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path12, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path12.split("/").pop();
+      const [path18, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path18.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -492,16 +492,16 @@ var require_readShebang = __commonJS({
   "node_modules/cross-spawn/lib/util/readShebang.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var fs10 = __require("fs");
+    var fs17 = __require("fs");
     var shebangCommand = require_shebang_command();
     function readShebang(command) {
       const size = 150;
       const buffer = Buffer.alloc(size);
       let fd;
       try {
-        fd = fs10.openSync(command, "r");
-        fs10.readSync(fd, buffer, 0, size, 0);
-        fs10.closeSync(fd);
+        fd = fs17.openSync(command, "r");
+        fs17.readSync(fd, buffer, 0, size, 0);
+        fs17.closeSync(fd);
       } catch (e) {
       }
       return shebangCommand(buffer.toString());
@@ -515,7 +515,7 @@ var require_parse = __commonJS({
   "node_modules/cross-spawn/lib/parse.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var path12 = __require("path");
+    var path18 = __require("path");
     var resolveCommand = require_resolveCommand();
     var escape = require_escape();
     var readShebang = require_readShebang();
@@ -540,7 +540,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path12.normalize(parsed.command);
+        parsed.command = path18.normalize(parsed.command);
         parsed.command = escape.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -2775,6 +2775,507 @@ var init_clipboardy = __esm({
 init_esm_shims();
 import { Command } from "commander";
 
+// node_modules/chalk/source/index.js
+init_esm_shims();
+
+// node_modules/chalk/source/vendor/ansi-styles/index.js
+init_esm_shims();
+var ANSI_BACKGROUND_OFFSET = 10;
+var wrapAnsi16 = (offset = 0) => (code) => `\x1B[${code + offset}m`;
+var wrapAnsi256 = (offset = 0) => (code) => `\x1B[${38 + offset};5;${code}m`;
+var wrapAnsi16m = (offset = 0) => (red, green, blue) => `\x1B[${38 + offset};2;${red};${green};${blue}m`;
+var styles = {
+  modifier: {
+    reset: [0, 0],
+    // 21 isn't widely supported and 22 does the same thing
+    bold: [1, 22],
+    dim: [2, 22],
+    italic: [3, 23],
+    underline: [4, 24],
+    overline: [53, 55],
+    inverse: [7, 27],
+    hidden: [8, 28],
+    strikethrough: [9, 29]
+  },
+  color: {
+    black: [30, 39],
+    red: [31, 39],
+    green: [32, 39],
+    yellow: [33, 39],
+    blue: [34, 39],
+    magenta: [35, 39],
+    cyan: [36, 39],
+    white: [37, 39],
+    // Bright color
+    blackBright: [90, 39],
+    gray: [90, 39],
+    // Alias of `blackBright`
+    grey: [90, 39],
+    // Alias of `blackBright`
+    redBright: [91, 39],
+    greenBright: [92, 39],
+    yellowBright: [93, 39],
+    blueBright: [94, 39],
+    magentaBright: [95, 39],
+    cyanBright: [96, 39],
+    whiteBright: [97, 39]
+  },
+  bgColor: {
+    bgBlack: [40, 49],
+    bgRed: [41, 49],
+    bgGreen: [42, 49],
+    bgYellow: [43, 49],
+    bgBlue: [44, 49],
+    bgMagenta: [45, 49],
+    bgCyan: [46, 49],
+    bgWhite: [47, 49],
+    // Bright color
+    bgBlackBright: [100, 49],
+    bgGray: [100, 49],
+    // Alias of `bgBlackBright`
+    bgGrey: [100, 49],
+    // Alias of `bgBlackBright`
+    bgRedBright: [101, 49],
+    bgGreenBright: [102, 49],
+    bgYellowBright: [103, 49],
+    bgBlueBright: [104, 49],
+    bgMagentaBright: [105, 49],
+    bgCyanBright: [106, 49],
+    bgWhiteBright: [107, 49]
+  }
+};
+var modifierNames = Object.keys(styles.modifier);
+var foregroundColorNames = Object.keys(styles.color);
+var backgroundColorNames = Object.keys(styles.bgColor);
+var colorNames = [...foregroundColorNames, ...backgroundColorNames];
+function assembleStyles() {
+  const codes = /* @__PURE__ */ new Map();
+  for (const [groupName, group] of Object.entries(styles)) {
+    for (const [styleName, style] of Object.entries(group)) {
+      styles[styleName] = {
+        open: `\x1B[${style[0]}m`,
+        close: `\x1B[${style[1]}m`
+      };
+      group[styleName] = styles[styleName];
+      codes.set(style[0], style[1]);
+    }
+    Object.defineProperty(styles, groupName, {
+      value: group,
+      enumerable: false
+    });
+  }
+  Object.defineProperty(styles, "codes", {
+    value: codes,
+    enumerable: false
+  });
+  styles.color.close = "\x1B[39m";
+  styles.bgColor.close = "\x1B[49m";
+  styles.color.ansi = wrapAnsi16();
+  styles.color.ansi256 = wrapAnsi256();
+  styles.color.ansi16m = wrapAnsi16m();
+  styles.bgColor.ansi = wrapAnsi16(ANSI_BACKGROUND_OFFSET);
+  styles.bgColor.ansi256 = wrapAnsi256(ANSI_BACKGROUND_OFFSET);
+  styles.bgColor.ansi16m = wrapAnsi16m(ANSI_BACKGROUND_OFFSET);
+  Object.defineProperties(styles, {
+    rgbToAnsi256: {
+      value(red, green, blue) {
+        if (red === green && green === blue) {
+          if (red < 8) {
+            return 16;
+          }
+          if (red > 248) {
+            return 231;
+          }
+          return Math.round((red - 8) / 247 * 24) + 232;
+        }
+        return 16 + 36 * Math.round(red / 255 * 5) + 6 * Math.round(green / 255 * 5) + Math.round(blue / 255 * 5);
+      },
+      enumerable: false
+    },
+    hexToRgb: {
+      value(hex) {
+        const matches = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
+        if (!matches) {
+          return [0, 0, 0];
+        }
+        let [colorString] = matches;
+        if (colorString.length === 3) {
+          colorString = [...colorString].map((character) => character + character).join("");
+        }
+        const integer = Number.parseInt(colorString, 16);
+        return [
+          /* eslint-disable no-bitwise */
+          integer >> 16 & 255,
+          integer >> 8 & 255,
+          integer & 255
+          /* eslint-enable no-bitwise */
+        ];
+      },
+      enumerable: false
+    },
+    hexToAnsi256: {
+      value: (hex) => styles.rgbToAnsi256(...styles.hexToRgb(hex)),
+      enumerable: false
+    },
+    ansi256ToAnsi: {
+      value(code) {
+        if (code < 8) {
+          return 30 + code;
+        }
+        if (code < 16) {
+          return 90 + (code - 8);
+        }
+        let red;
+        let green;
+        let blue;
+        if (code >= 232) {
+          red = ((code - 232) * 10 + 8) / 255;
+          green = red;
+          blue = red;
+        } else {
+          code -= 16;
+          const remainder = code % 36;
+          red = Math.floor(code / 36) / 5;
+          green = Math.floor(remainder / 6) / 5;
+          blue = remainder % 6 / 5;
+        }
+        const value = Math.max(red, green, blue) * 2;
+        if (value === 0) {
+          return 30;
+        }
+        let result = 30 + (Math.round(blue) << 2 | Math.round(green) << 1 | Math.round(red));
+        if (value === 2) {
+          result += 60;
+        }
+        return result;
+      },
+      enumerable: false
+    },
+    rgbToAnsi: {
+      value: (red, green, blue) => styles.ansi256ToAnsi(styles.rgbToAnsi256(red, green, blue)),
+      enumerable: false
+    },
+    hexToAnsi: {
+      value: (hex) => styles.ansi256ToAnsi(styles.hexToAnsi256(hex)),
+      enumerable: false
+    }
+  });
+  return styles;
+}
+var ansiStyles = assembleStyles();
+var ansi_styles_default = ansiStyles;
+
+// node_modules/chalk/source/vendor/supports-color/index.js
+init_esm_shims();
+import process2 from "process";
+import os from "os";
+import tty from "tty";
+function hasFlag(flag, argv = globalThis.Deno ? globalThis.Deno.args : process2.argv) {
+  const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
+  const position = argv.indexOf(prefix + flag);
+  const terminatorPosition = argv.indexOf("--");
+  return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
+}
+var { env } = process2;
+var flagForceColor;
+if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false") || hasFlag("color=never")) {
+  flagForceColor = 0;
+} else if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
+  flagForceColor = 1;
+}
+function envForceColor() {
+  if ("FORCE_COLOR" in env) {
+    if (env.FORCE_COLOR === "true") {
+      return 1;
+    }
+    if (env.FORCE_COLOR === "false") {
+      return 0;
+    }
+    return env.FORCE_COLOR.length === 0 ? 1 : Math.min(Number.parseInt(env.FORCE_COLOR, 10), 3);
+  }
+}
+function translateLevel(level) {
+  if (level === 0) {
+    return false;
+  }
+  return {
+    level,
+    hasBasic: true,
+    has256: level >= 2,
+    has16m: level >= 3
+  };
+}
+function _supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
+  const noFlagForceColor = envForceColor();
+  if (noFlagForceColor !== void 0) {
+    flagForceColor = noFlagForceColor;
+  }
+  const forceColor = sniffFlags ? flagForceColor : noFlagForceColor;
+  if (forceColor === 0) {
+    return 0;
+  }
+  if (sniffFlags) {
+    if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
+      return 3;
+    }
+    if (hasFlag("color=256")) {
+      return 2;
+    }
+  }
+  if ("TF_BUILD" in env && "AGENT_NAME" in env) {
+    return 1;
+  }
+  if (haveStream && !streamIsTTY && forceColor === void 0) {
+    return 0;
+  }
+  const min = forceColor || 0;
+  if (env.TERM === "dumb") {
+    return min;
+  }
+  if (process2.platform === "win32") {
+    const osRelease = os.release().split(".");
+    if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
+      return Number(osRelease[2]) >= 14931 ? 3 : 2;
+    }
+    return 1;
+  }
+  if ("CI" in env) {
+    if (["GITHUB_ACTIONS", "GITEA_ACTIONS", "CIRCLECI"].some((key) => key in env)) {
+      return 3;
+    }
+    if (["TRAVIS", "APPVEYOR", "GITLAB_CI", "BUILDKITE", "DRONE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
+      return 1;
+    }
+    return min;
+  }
+  if ("TEAMCITY_VERSION" in env) {
+    return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
+  }
+  if (env.COLORTERM === "truecolor") {
+    return 3;
+  }
+  if (env.TERM === "xterm-kitty") {
+    return 3;
+  }
+  if (env.TERM === "xterm-ghostty") {
+    return 3;
+  }
+  if (env.TERM === "wezterm") {
+    return 3;
+  }
+  if ("TERM_PROGRAM" in env) {
+    const version = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
+    switch (env.TERM_PROGRAM) {
+      case "iTerm.app": {
+        return version >= 3 ? 3 : 2;
+      }
+      case "Apple_Terminal": {
+        return 2;
+      }
+    }
+  }
+  if (/-256(color)?$/i.test(env.TERM)) {
+    return 2;
+  }
+  if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
+    return 1;
+  }
+  if ("COLORTERM" in env) {
+    return 1;
+  }
+  return min;
+}
+function createSupportsColor(stream, options = {}) {
+  const level = _supportsColor(stream, {
+    streamIsTTY: stream && stream.isTTY,
+    ...options
+  });
+  return translateLevel(level);
+}
+var supportsColor = {
+  stdout: createSupportsColor({ isTTY: tty.isatty(1) }),
+  stderr: createSupportsColor({ isTTY: tty.isatty(2) })
+};
+var supports_color_default = supportsColor;
+
+// node_modules/chalk/source/utilities.js
+init_esm_shims();
+function stringReplaceAll(string, substring, replacer) {
+  let index = string.indexOf(substring);
+  if (index === -1) {
+    return string;
+  }
+  const substringLength = substring.length;
+  let endIndex = 0;
+  let returnValue = "";
+  do {
+    returnValue += string.slice(endIndex, index) + substring + replacer;
+    endIndex = index + substringLength;
+    index = string.indexOf(substring, endIndex);
+  } while (index !== -1);
+  returnValue += string.slice(endIndex);
+  return returnValue;
+}
+function stringEncaseCRLFWithFirstIndex(string, prefix, postfix, index) {
+  let endIndex = 0;
+  let returnValue = "";
+  do {
+    const gotCR = string[index - 1] === "\r";
+    returnValue += string.slice(endIndex, gotCR ? index - 1 : index) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
+    endIndex = index + 1;
+    index = string.indexOf("\n", endIndex);
+  } while (index !== -1);
+  returnValue += string.slice(endIndex);
+  return returnValue;
+}
+
+// node_modules/chalk/source/index.js
+var { stdout: stdoutColor, stderr: stderrColor } = supports_color_default;
+var GENERATOR = /* @__PURE__ */ Symbol("GENERATOR");
+var STYLER = /* @__PURE__ */ Symbol("STYLER");
+var IS_EMPTY = /* @__PURE__ */ Symbol("IS_EMPTY");
+var levelMapping = [
+  "ansi",
+  "ansi",
+  "ansi256",
+  "ansi16m"
+];
+var styles2 = /* @__PURE__ */ Object.create(null);
+var applyOptions = (object, options = {}) => {
+  if (options.level && !(Number.isInteger(options.level) && options.level >= 0 && options.level <= 3)) {
+    throw new Error("The `level` option should be an integer from 0 to 3");
+  }
+  const colorLevel = stdoutColor ? stdoutColor.level : 0;
+  object.level = options.level === void 0 ? colorLevel : options.level;
+};
+var chalkFactory = (options) => {
+  const chalk2 = (...strings) => strings.join(" ");
+  applyOptions(chalk2, options);
+  Object.setPrototypeOf(chalk2, createChalk.prototype);
+  return chalk2;
+};
+function createChalk(options) {
+  return chalkFactory(options);
+}
+Object.setPrototypeOf(createChalk.prototype, Function.prototype);
+for (const [styleName, style] of Object.entries(ansi_styles_default)) {
+  styles2[styleName] = {
+    get() {
+      const builder = createBuilder(this, createStyler(style.open, style.close, this[STYLER]), this[IS_EMPTY]);
+      Object.defineProperty(this, styleName, { value: builder });
+      return builder;
+    }
+  };
+}
+styles2.visible = {
+  get() {
+    const builder = createBuilder(this, this[STYLER], true);
+    Object.defineProperty(this, "visible", { value: builder });
+    return builder;
+  }
+};
+var getModelAnsi = (model, level, type, ...arguments_) => {
+  if (model === "rgb") {
+    if (level === "ansi16m") {
+      return ansi_styles_default[type].ansi16m(...arguments_);
+    }
+    if (level === "ansi256") {
+      return ansi_styles_default[type].ansi256(ansi_styles_default.rgbToAnsi256(...arguments_));
+    }
+    return ansi_styles_default[type].ansi(ansi_styles_default.rgbToAnsi(...arguments_));
+  }
+  if (model === "hex") {
+    return getModelAnsi("rgb", level, type, ...ansi_styles_default.hexToRgb(...arguments_));
+  }
+  return ansi_styles_default[type][model](...arguments_);
+};
+var usedModels = ["rgb", "hex", "ansi256"];
+for (const model of usedModels) {
+  styles2[model] = {
+    get() {
+      const { level } = this;
+      return function(...arguments_) {
+        const styler = createStyler(getModelAnsi(model, levelMapping[level], "color", ...arguments_), ansi_styles_default.color.close, this[STYLER]);
+        return createBuilder(this, styler, this[IS_EMPTY]);
+      };
+    }
+  };
+  const bgModel = "bg" + model[0].toUpperCase() + model.slice(1);
+  styles2[bgModel] = {
+    get() {
+      const { level } = this;
+      return function(...arguments_) {
+        const styler = createStyler(getModelAnsi(model, levelMapping[level], "bgColor", ...arguments_), ansi_styles_default.bgColor.close, this[STYLER]);
+        return createBuilder(this, styler, this[IS_EMPTY]);
+      };
+    }
+  };
+}
+var proto = Object.defineProperties(() => {
+}, {
+  ...styles2,
+  level: {
+    enumerable: true,
+    get() {
+      return this[GENERATOR].level;
+    },
+    set(level) {
+      this[GENERATOR].level = level;
+    }
+  }
+});
+var createStyler = (open, close, parent) => {
+  let openAll;
+  let closeAll;
+  if (parent === void 0) {
+    openAll = open;
+    closeAll = close;
+  } else {
+    openAll = parent.openAll + open;
+    closeAll = close + parent.closeAll;
+  }
+  return {
+    open,
+    close,
+    openAll,
+    closeAll,
+    parent
+  };
+};
+var createBuilder = (self, _styler, _isEmpty) => {
+  const builder = (...arguments_) => applyStyle(builder, arguments_.length === 1 ? "" + arguments_[0] : arguments_.join(" "));
+  Object.setPrototypeOf(builder, proto);
+  builder[GENERATOR] = self;
+  builder[STYLER] = _styler;
+  builder[IS_EMPTY] = _isEmpty;
+  return builder;
+};
+var applyStyle = (self, string) => {
+  if (self.level <= 0 || !string) {
+    return self[IS_EMPTY] ? "" : string;
+  }
+  let styler = self[STYLER];
+  if (styler === void 0) {
+    return string;
+  }
+  const { openAll, closeAll } = styler;
+  if (string.includes("\x1B")) {
+    while (styler !== void 0) {
+      string = stringReplaceAll(string, styler.close, styler.open);
+      styler = styler.parent;
+    }
+  }
+  const lfIndex = string.indexOf("\n");
+  if (lfIndex !== -1) {
+    string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
+  }
+  return openAll + string + closeAll;
+};
+Object.defineProperties(createChalk.prototype, styles2);
+var chalk = createChalk();
+var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
+var source_default = chalk;
+
 // src/server.ts
 init_esm_shims();
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
@@ -2786,11 +3287,12 @@ import {
 
 // src/db/index.ts
 init_esm_shims();
-import Database from "better-sqlite3";
+import initSqlJs from "sql.js";
 import path2 from "path";
-import os from "os";
+import os2 from "os";
 import fs from "fs";
 var db = null;
+var dbFilePath = null;
 var MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
@@ -2809,6 +3311,8 @@ var MIGRATIONS = [
     embedding BLOB,
     source TEXT NOT NULL,
     created_at INTEGER NOT NULL,
+    tool TEXT DEFAULT 'claude_code',
+    project_path TEXT,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
   )`,
   `CREATE TABLE IF NOT EXISTS warnings (
@@ -2827,42 +3331,75 @@ var MIGRATIONS = [
     key TEXT PRIMARY KEY,
     value TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS rot_scores (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    turn INTEGER,
+    contradiction_score REAL,
+    repetition_score REAL,
+    saturation_score REAL,
+    combined_score REAL,
+    created_at INTEGER,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS handoffs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    project_path TEXT,
+    prompt TEXT,
+    created_at INTEGER,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+  )`,
   `CREATE INDEX IF NOT EXISTS idx_decisions_session ON decisions(session_id)`,
   `CREATE INDEX IF NOT EXISTS idx_warnings_session ON warnings(session_id)`,
-  `CREATE INDEX IF NOT EXISTS idx_decisions_type ON decisions(type)`
+  `CREATE INDEX IF NOT EXISTS idx_decisions_type ON decisions(type)`,
+  `CREATE INDEX IF NOT EXISTS idx_rot_scores_session ON rot_scores(session_id)`
 ];
 function getDbPath() {
-  const openrotDir = path2.join(os.homedir(), ".openrot");
+  const openrotDir = path2.join(os2.homedir(), ".openrot");
   if (!fs.existsSync(openrotDir)) {
     fs.mkdirSync(openrotDir, { recursive: true });
   }
   return path2.join(openrotDir, "sessions.db");
 }
-function getDatabase(dbPath) {
+async function getDb(overridePath) {
   if (db) return db;
-  const resolvedPath = dbPath || getDbPath();
+  const resolvedPath = overridePath || getDbPath();
   try {
-    db = new Database(resolvedPath);
-    db.pragma("journal_mode = WAL");
-    db.pragma("foreign_keys = ON");
+    const SQL = await initSqlJs();
+    if (fs.existsSync(resolvedPath)) {
+      const fileBuffer = fs.readFileSync(resolvedPath);
+      db = new SQL.Database(fileBuffer);
+    } else {
+      db = new SQL.Database();
+    }
+    db.run("PRAGMA journal_mode = WAL");
+    db.run("PRAGMA foreign_keys = ON");
+    dbFilePath = resolvedPath;
     runMigrations(db);
+    saveToFile();
     return db;
   } catch (error) {
     throw new Error(`Failed to open database at ${resolvedPath}: ${error}`);
   }
 }
 function runMigrations(database) {
-  const migrate = database.transaction(() => {
-    for (const migration of MIGRATIONS) {
-      database.exec(migration);
-    }
-  });
-  migrate();
+  for (const migration of MIGRATIONS) {
+    database.run(migration);
+  }
 }
-function closeDatabase() {
+function saveToFile() {
+  if (db && dbFilePath) {
+    const data = db.export();
+    fs.writeFileSync(dbFilePath, Buffer.from(data));
+  }
+}
+function closeDb() {
   if (db) {
+    saveToFile();
     db.close();
     db = null;
+    dbFilePath = null;
   }
 }
 
@@ -2871,8 +3408,11 @@ init_esm_shims();
 import { v4 as uuidv4 } from "uuid";
 var SessionStore = class {
   db;
-  constructor(db2) {
+  save;
+  constructor(db2, save = () => {
+  }) {
     this.db = db2;
+    this.save = save;
   }
   create(editor) {
     const session = {
@@ -2881,30 +3421,47 @@ var SessionStore = class {
       editor: editor || null,
       endedAt: null
     };
-    this.db.prepare("INSERT INTO sessions (id, created_at, editor, ended_at) VALUES (?, ?, ?, ?)").run(session.id, session.createdAt, session.editor, session.endedAt);
+    this.db.run(
+      "INSERT INTO sessions (id, created_at, editor, ended_at) VALUES (?, ?, ?, ?)",
+      [session.id, session.createdAt, session.editor, session.endedAt]
+    );
+    this.save();
     return session;
   }
   getById(id) {
-    const row = this.db.prepare("SELECT * FROM sessions WHERE id = ?").get(id);
-    if (!row) return null;
-    return this.rowToSession(row);
+    const results = this.db.exec("SELECT * FROM sessions WHERE id = ?", [id]);
+    if (!results.length || !results[0].values.length) return null;
+    return this.rowToSession(this.mapRow(results[0].columns, results[0].values[0]));
   }
   getAll() {
-    const rows = this.db.prepare("SELECT * FROM sessions ORDER BY created_at DESC").all();
-    return rows.map((row) => this.rowToSession(row));
+    const results = this.db.exec("SELECT * FROM sessions ORDER BY created_at DESC");
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToSession(this.mapRow(results[0].columns, row))
+    );
   }
   end(id) {
-    this.db.prepare("UPDATE sessions SET ended_at = ? WHERE id = ?").run(Date.now(), id);
+    this.db.run("UPDATE sessions SET ended_at = ? WHERE id = ?", [Date.now(), id]);
+    this.save();
   }
   delete(id) {
-    this.db.prepare("DELETE FROM warnings WHERE session_id = ?").run(id);
-    this.db.prepare("DELETE FROM decisions WHERE session_id = ?").run(id);
-    this.db.prepare("DELETE FROM sessions WHERE id = ?").run(id);
+    this.db.run("DELETE FROM warnings WHERE session_id = ?", [id]);
+    this.db.run("DELETE FROM decisions WHERE session_id = ?", [id]);
+    this.db.run("DELETE FROM sessions WHERE id = ?", [id]);
+    this.save();
   }
   deleteAll() {
-    this.db.prepare("DELETE FROM warnings").run();
-    this.db.prepare("DELETE FROM decisions").run();
-    this.db.prepare("DELETE FROM sessions").run();
+    this.db.run("DELETE FROM warnings");
+    this.db.run("DELETE FROM decisions");
+    this.db.run("DELETE FROM sessions");
+    this.save();
+  }
+  mapRow(columns, values) {
+    const row = {};
+    columns.forEach((col, i) => {
+      row[col] = values[i];
+    });
+    return row;
   }
   rowToSession(row) {
     return {
@@ -2921,8 +3478,11 @@ init_esm_shims();
 import { v4 as uuidv42 } from "uuid";
 var DecisionStore = class {
   db;
-  constructor(db2) {
+  save;
+  constructor(db2, save = () => {
+  }) {
     this.db = db2;
+    this.save = save;
   }
   create(sessionId, turn, extraction) {
     const decision = {
@@ -2937,44 +3497,58 @@ var DecisionStore = class {
       source: extraction.source,
       createdAt: Date.now()
     };
-    this.db.prepare(
+    this.db.run(
       `INSERT INTO decisions (id, session_id, turn, raw_text, commitment, type, confidence, embedding, source, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      decision.id,
-      decision.sessionId,
-      decision.turn,
-      decision.rawText,
-      decision.commitment,
-      decision.type,
-      decision.confidence,
-      null,
-      decision.source,
-      decision.createdAt
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        decision.id,
+        decision.sessionId,
+        decision.turn,
+        decision.rawText,
+        decision.commitment,
+        decision.type,
+        decision.confidence,
+        null,
+        decision.source,
+        decision.createdAt
+      ]
     );
+    this.save();
     return decision;
   }
   updateEmbedding(id, embedding) {
-    const buffer = Buffer.from(embedding.buffer);
-    this.db.prepare("UPDATE decisions SET embedding = ? WHERE id = ?").run(buffer, id);
+    const buffer = new Uint8Array(embedding.buffer, embedding.byteOffset, embedding.byteLength);
+    this.db.run("UPDATE decisions SET embedding = ? WHERE id = ?", [buffer, id]);
+    this.save();
   }
   getById(id) {
-    const row = this.db.prepare("SELECT * FROM decisions WHERE id = ?").get(id);
-    if (!row) return null;
-    return this.rowToDecision(row);
+    const results = this.db.exec("SELECT * FROM decisions WHERE id = ?", [id]);
+    if (!results.length || !results[0].values.length) return null;
+    return this.rowToDecision(this.mapRow(results[0].columns, results[0].values[0]));
   }
   getBySessionId(sessionId) {
-    const rows = this.db.prepare("SELECT * FROM decisions WHERE session_id = ? ORDER BY turn ASC, created_at ASC").all(sessionId);
-    return rows.map((row) => this.rowToDecision(row));
+    const results = this.db.exec(
+      "SELECT * FROM decisions WHERE session_id = ? ORDER BY turn ASC, created_at ASC",
+      [sessionId]
+    );
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToDecision(this.mapRow(results[0].columns, row))
+    );
   }
   getWithEmbeddings(sessionId) {
-    const rows = this.db.prepare(
-      "SELECT * FROM decisions WHERE session_id = ? AND embedding IS NOT NULL ORDER BY turn ASC"
-    ).all(sessionId);
-    return rows.map((row) => this.rowToDecision(row));
+    const results = this.db.exec(
+      "SELECT * FROM decisions WHERE session_id = ? AND embedding IS NOT NULL ORDER BY turn ASC",
+      [sessionId]
+    );
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToDecision(this.mapRow(results[0].columns, row))
+    );
   }
   deleteBySessionId(sessionId) {
-    this.db.prepare("DELETE FROM decisions WHERE session_id = ?").run(sessionId);
+    this.db.run("DELETE FROM decisions WHERE session_id = ?", [sessionId]);
+    this.save();
   }
   /** Check if a very similar commitment already exists for this session */
   isDuplicate(sessionId, commitment) {
@@ -2982,10 +3556,40 @@ var DecisionStore = class {
     const existing = this.getBySessionId(sessionId);
     return existing.some((d) => d.commitment.toLowerCase().trim() === normalized);
   }
+  /** Get all decisions for a specific project path (across all sessions) */
+  getAllForProject(projectPath) {
+    const results = this.db.exec(
+      "SELECT * FROM decisions WHERE project_path = ? ORDER BY created_at DESC",
+      [projectPath]
+    );
+    if (!results.length) {
+      return this.getAll();
+    }
+    return results[0].values.map(
+      (row) => this.rowToDecision(this.mapRow(results[0].columns, row))
+    );
+  }
+  /** Get all decisions across all sessions */
+  getAll() {
+    const results = this.db.exec(
+      "SELECT * FROM decisions ORDER BY created_at DESC"
+    );
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToDecision(this.mapRow(results[0].columns, row))
+    );
+  }
+  mapRow(columns, values) {
+    const row = {};
+    columns.forEach((col, i) => {
+      row[col] = values[i];
+    });
+    return row;
+  }
   rowToDecision(row) {
     let embedding = null;
     if (row.embedding) {
-      const buffer = row.embedding;
+      const buffer = row.embedding instanceof Uint8Array ? row.embedding : new Uint8Array(row.embedding);
       embedding = new Float32Array(
         buffer.buffer,
         buffer.byteOffset,
@@ -3012,8 +3616,11 @@ init_esm_shims();
 import { v4 as uuidv43 } from "uuid";
 var WarningStore = class {
   db;
-  constructor(db2) {
+  save;
+  constructor(db2, save = () => {
+  }) {
     this.db = db2;
+    this.save = save;
   }
   create(sessionId, currentTurn, priorDecisionId, confidence, reason) {
     const warning = {
@@ -3026,46 +3633,72 @@ var WarningStore = class {
       dismissed: false,
       createdAt: Date.now()
     };
-    this.db.prepare(
+    this.db.run(
       `INSERT INTO warnings (id, session_id, current_turn, prior_decision_id, confidence, reason, dismissed, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      warning.id,
-      warning.sessionId,
-      warning.currentTurn,
-      warning.priorDecisionId,
-      warning.confidence,
-      warning.reason,
-      warning.dismissed ? 1 : 0,
-      warning.createdAt
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        warning.id,
+        warning.sessionId,
+        warning.currentTurn,
+        warning.priorDecisionId,
+        warning.confidence,
+        warning.reason,
+        warning.dismissed ? 1 : 0,
+        warning.createdAt
+      ]
     );
+    this.save();
     return warning;
   }
   getById(id) {
-    const row = this.db.prepare("SELECT * FROM warnings WHERE id = ?").get(id);
-    if (!row) return null;
-    return this.rowToWarning(row);
+    const results = this.db.exec("SELECT * FROM warnings WHERE id = ?", [id]);
+    if (!results.length || !results[0].values.length) return null;
+    return this.rowToWarning(this.mapRow(results[0].columns, results[0].values[0]));
   }
   getBySessionId(sessionId) {
-    const rows = this.db.prepare("SELECT * FROM warnings WHERE session_id = ? ORDER BY created_at DESC").all(sessionId);
-    return rows.map((row) => this.rowToWarning(row));
+    const results = this.db.exec(
+      "SELECT * FROM warnings WHERE session_id = ? ORDER BY created_at DESC",
+      [sessionId]
+    );
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToWarning(this.mapRow(results[0].columns, row))
+    );
   }
   getActiveBySessionId(sessionId) {
-    const rows = this.db.prepare(
-      "SELECT * FROM warnings WHERE session_id = ? AND dismissed = 0 ORDER BY created_at DESC"
-    ).all(sessionId);
-    return rows.map((row) => this.rowToWarning(row));
+    const results = this.db.exec(
+      "SELECT * FROM warnings WHERE session_id = ? AND dismissed = 0 ORDER BY created_at DESC",
+      [sessionId]
+    );
+    if (!results.length) return [];
+    return results[0].values.map(
+      (row) => this.rowToWarning(this.mapRow(results[0].columns, row))
+    );
   }
   dismiss(id) {
-    const result = this.db.prepare("UPDATE warnings SET dismissed = 1 WHERE id = ?").run(id);
-    return result.changes > 0;
+    this.db.run("UPDATE warnings SET dismissed = 1 WHERE id = ?", [id]);
+    const changed = this.db.getRowsModified();
+    if (changed > 0) this.save();
+    return changed > 0;
   }
   countBySessionId(sessionId) {
-    const row = this.db.prepare("SELECT COUNT(*) as count FROM warnings WHERE session_id = ?").get(sessionId);
-    return row.count;
+    const results = this.db.exec(
+      "SELECT COUNT(*) as count FROM warnings WHERE session_id = ?",
+      [sessionId]
+    );
+    if (!results.length || !results[0].values.length) return 0;
+    return results[0].values[0][0];
   }
   deleteBySessionId(sessionId) {
-    this.db.prepare("DELETE FROM warnings WHERE session_id = ?").run(sessionId);
+    this.db.run("DELETE FROM warnings WHERE session_id = ?", [sessionId]);
+    this.save();
+  }
+  mapRow(columns, values) {
+    const row = {};
+    columns.forEach((col, i) => {
+      row[col] = values[i];
+    });
+    return row;
   }
   rowToWarning(row) {
     return {
@@ -3086,7 +3719,7 @@ init_esm_shims();
 import { cosmiconfig } from "cosmiconfig";
 import fs3 from "fs";
 import path4 from "path";
-import os3 from "os";
+import os4 from "os";
 
 // src/config/defaults.ts
 init_esm_shims();
@@ -3121,7 +3754,7 @@ function mergeConfig(userConfig, defaults = DEFAULT_CONFIG) {
 init_esm_shims();
 import fs2 from "fs";
 import path3 from "path";
-import os2 from "os";
+import os3 from "os";
 
 // src/models/ollama.ts
 init_esm_shims();
@@ -3202,7 +3835,7 @@ async function detectEnvironment() {
     ollamaModels: []
   };
   try {
-    const homeDir = os2.homedir();
+    const homeDir = os3.homedir();
     const claudeConfigDir = path3.join(homeDir, ".claude");
     const claudeJsonFile = path3.join(homeDir, ".claude.json");
     result.editors.claudeCode = fs2.existsSync(claudeConfigDir) || fs2.existsSync(claudeJsonFile);
@@ -3221,7 +3854,7 @@ async function detectEnvironment() {
     }
     try {
       let antigravitySettingsPath;
-      const platform = os2.platform();
+      const platform = os3.platform();
       if (platform === "win32") {
         antigravitySettingsPath = path3.join(
           process.env.APPDATA || path3.join(homeDir, "AppData", "Roaming"),
@@ -3303,7 +3936,7 @@ async function loadConfig() {
 }
 function saveConfig(config) {
   try {
-    const configDir = path4.join(os3.homedir(), ".openrot");
+    const configDir = path4.join(os4.homedir(), ".openrot");
     if (!fs3.existsSync(configDir)) {
       fs3.mkdirSync(configDir, { recursive: true });
     }
@@ -3313,7 +3946,7 @@ function saveConfig(config) {
   }
 }
 function getConfigPath() {
-  return path4.join(os3.homedir(), ".openrot", "config.json");
+  return path4.join(os4.homedir(), ".openrot", "config.json");
 }
 
 // src/models/index.ts
@@ -4036,8 +4669,10 @@ function extractRelevantExcerpt(responseText, decision) {
 // src/pipeline.ts
 var firstWarningShown = /* @__PURE__ */ new Map();
 async function processTurn(sessionId, turn, message, options) {
-  const decisionStore = new DecisionStore(options.db);
-  const warningStore = new WarningStore(options.db);
+  const saveFn = options.saveFn || (() => {
+  });
+  const decisionStore = new DecisionStore(options.db, saveFn);
+  const warningStore = new WarningStore(options.db, saveFn);
   let newExtractions = [];
   try {
     newExtractions = await extractDecisions(message, {
@@ -4155,12 +4790,12 @@ function formatWarning(output) {
 init_esm_shims();
 import winston from "winston";
 import path5 from "path";
-import os4 from "os";
+import os5 from "os";
 import fs4 from "fs";
 var logger = null;
 function getLogger() {
   if (logger) return logger;
-  const logDir = path5.join(os4.homedir(), ".openrot");
+  const logDir = path5.join(os5.homedir(), ".openrot");
   try {
     if (!fs4.existsSync(logDir)) {
       fs4.mkdirSync(logDir, { recursive: true });
@@ -4190,509 +4825,6 @@ function getLogger() {
 
 // src/cli/inject.ts
 init_esm_shims();
-
-// node_modules/chalk/source/index.js
-init_esm_shims();
-
-// node_modules/chalk/source/vendor/ansi-styles/index.js
-init_esm_shims();
-var ANSI_BACKGROUND_OFFSET = 10;
-var wrapAnsi16 = (offset = 0) => (code) => `\x1B[${code + offset}m`;
-var wrapAnsi256 = (offset = 0) => (code) => `\x1B[${38 + offset};5;${code}m`;
-var wrapAnsi16m = (offset = 0) => (red, green, blue) => `\x1B[${38 + offset};2;${red};${green};${blue}m`;
-var styles = {
-  modifier: {
-    reset: [0, 0],
-    // 21 isn't widely supported and 22 does the same thing
-    bold: [1, 22],
-    dim: [2, 22],
-    italic: [3, 23],
-    underline: [4, 24],
-    overline: [53, 55],
-    inverse: [7, 27],
-    hidden: [8, 28],
-    strikethrough: [9, 29]
-  },
-  color: {
-    black: [30, 39],
-    red: [31, 39],
-    green: [32, 39],
-    yellow: [33, 39],
-    blue: [34, 39],
-    magenta: [35, 39],
-    cyan: [36, 39],
-    white: [37, 39],
-    // Bright color
-    blackBright: [90, 39],
-    gray: [90, 39],
-    // Alias of `blackBright`
-    grey: [90, 39],
-    // Alias of `blackBright`
-    redBright: [91, 39],
-    greenBright: [92, 39],
-    yellowBright: [93, 39],
-    blueBright: [94, 39],
-    magentaBright: [95, 39],
-    cyanBright: [96, 39],
-    whiteBright: [97, 39]
-  },
-  bgColor: {
-    bgBlack: [40, 49],
-    bgRed: [41, 49],
-    bgGreen: [42, 49],
-    bgYellow: [43, 49],
-    bgBlue: [44, 49],
-    bgMagenta: [45, 49],
-    bgCyan: [46, 49],
-    bgWhite: [47, 49],
-    // Bright color
-    bgBlackBright: [100, 49],
-    bgGray: [100, 49],
-    // Alias of `bgBlackBright`
-    bgGrey: [100, 49],
-    // Alias of `bgBlackBright`
-    bgRedBright: [101, 49],
-    bgGreenBright: [102, 49],
-    bgYellowBright: [103, 49],
-    bgBlueBright: [104, 49],
-    bgMagentaBright: [105, 49],
-    bgCyanBright: [106, 49],
-    bgWhiteBright: [107, 49]
-  }
-};
-var modifierNames = Object.keys(styles.modifier);
-var foregroundColorNames = Object.keys(styles.color);
-var backgroundColorNames = Object.keys(styles.bgColor);
-var colorNames = [...foregroundColorNames, ...backgroundColorNames];
-function assembleStyles() {
-  const codes = /* @__PURE__ */ new Map();
-  for (const [groupName, group] of Object.entries(styles)) {
-    for (const [styleName, style] of Object.entries(group)) {
-      styles[styleName] = {
-        open: `\x1B[${style[0]}m`,
-        close: `\x1B[${style[1]}m`
-      };
-      group[styleName] = styles[styleName];
-      codes.set(style[0], style[1]);
-    }
-    Object.defineProperty(styles, groupName, {
-      value: group,
-      enumerable: false
-    });
-  }
-  Object.defineProperty(styles, "codes", {
-    value: codes,
-    enumerable: false
-  });
-  styles.color.close = "\x1B[39m";
-  styles.bgColor.close = "\x1B[49m";
-  styles.color.ansi = wrapAnsi16();
-  styles.color.ansi256 = wrapAnsi256();
-  styles.color.ansi16m = wrapAnsi16m();
-  styles.bgColor.ansi = wrapAnsi16(ANSI_BACKGROUND_OFFSET);
-  styles.bgColor.ansi256 = wrapAnsi256(ANSI_BACKGROUND_OFFSET);
-  styles.bgColor.ansi16m = wrapAnsi16m(ANSI_BACKGROUND_OFFSET);
-  Object.defineProperties(styles, {
-    rgbToAnsi256: {
-      value(red, green, blue) {
-        if (red === green && green === blue) {
-          if (red < 8) {
-            return 16;
-          }
-          if (red > 248) {
-            return 231;
-          }
-          return Math.round((red - 8) / 247 * 24) + 232;
-        }
-        return 16 + 36 * Math.round(red / 255 * 5) + 6 * Math.round(green / 255 * 5) + Math.round(blue / 255 * 5);
-      },
-      enumerable: false
-    },
-    hexToRgb: {
-      value(hex) {
-        const matches = /[a-f\d]{6}|[a-f\d]{3}/i.exec(hex.toString(16));
-        if (!matches) {
-          return [0, 0, 0];
-        }
-        let [colorString] = matches;
-        if (colorString.length === 3) {
-          colorString = [...colorString].map((character) => character + character).join("");
-        }
-        const integer = Number.parseInt(colorString, 16);
-        return [
-          /* eslint-disable no-bitwise */
-          integer >> 16 & 255,
-          integer >> 8 & 255,
-          integer & 255
-          /* eslint-enable no-bitwise */
-        ];
-      },
-      enumerable: false
-    },
-    hexToAnsi256: {
-      value: (hex) => styles.rgbToAnsi256(...styles.hexToRgb(hex)),
-      enumerable: false
-    },
-    ansi256ToAnsi: {
-      value(code) {
-        if (code < 8) {
-          return 30 + code;
-        }
-        if (code < 16) {
-          return 90 + (code - 8);
-        }
-        let red;
-        let green;
-        let blue;
-        if (code >= 232) {
-          red = ((code - 232) * 10 + 8) / 255;
-          green = red;
-          blue = red;
-        } else {
-          code -= 16;
-          const remainder = code % 36;
-          red = Math.floor(code / 36) / 5;
-          green = Math.floor(remainder / 6) / 5;
-          blue = remainder % 6 / 5;
-        }
-        const value = Math.max(red, green, blue) * 2;
-        if (value === 0) {
-          return 30;
-        }
-        let result = 30 + (Math.round(blue) << 2 | Math.round(green) << 1 | Math.round(red));
-        if (value === 2) {
-          result += 60;
-        }
-        return result;
-      },
-      enumerable: false
-    },
-    rgbToAnsi: {
-      value: (red, green, blue) => styles.ansi256ToAnsi(styles.rgbToAnsi256(red, green, blue)),
-      enumerable: false
-    },
-    hexToAnsi: {
-      value: (hex) => styles.ansi256ToAnsi(styles.hexToAnsi256(hex)),
-      enumerable: false
-    }
-  });
-  return styles;
-}
-var ansiStyles = assembleStyles();
-var ansi_styles_default = ansiStyles;
-
-// node_modules/chalk/source/vendor/supports-color/index.js
-init_esm_shims();
-import process2 from "process";
-import os5 from "os";
-import tty from "tty";
-function hasFlag(flag, argv = globalThis.Deno ? globalThis.Deno.args : process2.argv) {
-  const prefix = flag.startsWith("-") ? "" : flag.length === 1 ? "-" : "--";
-  const position = argv.indexOf(prefix + flag);
-  const terminatorPosition = argv.indexOf("--");
-  return position !== -1 && (terminatorPosition === -1 || position < terminatorPosition);
-}
-var { env } = process2;
-var flagForceColor;
-if (hasFlag("no-color") || hasFlag("no-colors") || hasFlag("color=false") || hasFlag("color=never")) {
-  flagForceColor = 0;
-} else if (hasFlag("color") || hasFlag("colors") || hasFlag("color=true") || hasFlag("color=always")) {
-  flagForceColor = 1;
-}
-function envForceColor() {
-  if ("FORCE_COLOR" in env) {
-    if (env.FORCE_COLOR === "true") {
-      return 1;
-    }
-    if (env.FORCE_COLOR === "false") {
-      return 0;
-    }
-    return env.FORCE_COLOR.length === 0 ? 1 : Math.min(Number.parseInt(env.FORCE_COLOR, 10), 3);
-  }
-}
-function translateLevel(level) {
-  if (level === 0) {
-    return false;
-  }
-  return {
-    level,
-    hasBasic: true,
-    has256: level >= 2,
-    has16m: level >= 3
-  };
-}
-function _supportsColor(haveStream, { streamIsTTY, sniffFlags = true } = {}) {
-  const noFlagForceColor = envForceColor();
-  if (noFlagForceColor !== void 0) {
-    flagForceColor = noFlagForceColor;
-  }
-  const forceColor = sniffFlags ? flagForceColor : noFlagForceColor;
-  if (forceColor === 0) {
-    return 0;
-  }
-  if (sniffFlags) {
-    if (hasFlag("color=16m") || hasFlag("color=full") || hasFlag("color=truecolor")) {
-      return 3;
-    }
-    if (hasFlag("color=256")) {
-      return 2;
-    }
-  }
-  if ("TF_BUILD" in env && "AGENT_NAME" in env) {
-    return 1;
-  }
-  if (haveStream && !streamIsTTY && forceColor === void 0) {
-    return 0;
-  }
-  const min = forceColor || 0;
-  if (env.TERM === "dumb") {
-    return min;
-  }
-  if (process2.platform === "win32") {
-    const osRelease = os5.release().split(".");
-    if (Number(osRelease[0]) >= 10 && Number(osRelease[2]) >= 10586) {
-      return Number(osRelease[2]) >= 14931 ? 3 : 2;
-    }
-    return 1;
-  }
-  if ("CI" in env) {
-    if (["GITHUB_ACTIONS", "GITEA_ACTIONS", "CIRCLECI"].some((key) => key in env)) {
-      return 3;
-    }
-    if (["TRAVIS", "APPVEYOR", "GITLAB_CI", "BUILDKITE", "DRONE"].some((sign) => sign in env) || env.CI_NAME === "codeship") {
-      return 1;
-    }
-    return min;
-  }
-  if ("TEAMCITY_VERSION" in env) {
-    return /^(9\.(0*[1-9]\d*)\.|\d{2,}\.)/.test(env.TEAMCITY_VERSION) ? 1 : 0;
-  }
-  if (env.COLORTERM === "truecolor") {
-    return 3;
-  }
-  if (env.TERM === "xterm-kitty") {
-    return 3;
-  }
-  if (env.TERM === "xterm-ghostty") {
-    return 3;
-  }
-  if (env.TERM === "wezterm") {
-    return 3;
-  }
-  if ("TERM_PROGRAM" in env) {
-    const version = Number.parseInt((env.TERM_PROGRAM_VERSION || "").split(".")[0], 10);
-    switch (env.TERM_PROGRAM) {
-      case "iTerm.app": {
-        return version >= 3 ? 3 : 2;
-      }
-      case "Apple_Terminal": {
-        return 2;
-      }
-    }
-  }
-  if (/-256(color)?$/i.test(env.TERM)) {
-    return 2;
-  }
-  if (/^screen|^xterm|^vt100|^vt220|^rxvt|color|ansi|cygwin|linux/i.test(env.TERM)) {
-    return 1;
-  }
-  if ("COLORTERM" in env) {
-    return 1;
-  }
-  return min;
-}
-function createSupportsColor(stream, options = {}) {
-  const level = _supportsColor(stream, {
-    streamIsTTY: stream && stream.isTTY,
-    ...options
-  });
-  return translateLevel(level);
-}
-var supportsColor = {
-  stdout: createSupportsColor({ isTTY: tty.isatty(1) }),
-  stderr: createSupportsColor({ isTTY: tty.isatty(2) })
-};
-var supports_color_default = supportsColor;
-
-// node_modules/chalk/source/utilities.js
-init_esm_shims();
-function stringReplaceAll(string, substring, replacer) {
-  let index = string.indexOf(substring);
-  if (index === -1) {
-    return string;
-  }
-  const substringLength = substring.length;
-  let endIndex = 0;
-  let returnValue = "";
-  do {
-    returnValue += string.slice(endIndex, index) + substring + replacer;
-    endIndex = index + substringLength;
-    index = string.indexOf(substring, endIndex);
-  } while (index !== -1);
-  returnValue += string.slice(endIndex);
-  return returnValue;
-}
-function stringEncaseCRLFWithFirstIndex(string, prefix, postfix, index) {
-  let endIndex = 0;
-  let returnValue = "";
-  do {
-    const gotCR = string[index - 1] === "\r";
-    returnValue += string.slice(endIndex, gotCR ? index - 1 : index) + prefix + (gotCR ? "\r\n" : "\n") + postfix;
-    endIndex = index + 1;
-    index = string.indexOf("\n", endIndex);
-  } while (index !== -1);
-  returnValue += string.slice(endIndex);
-  return returnValue;
-}
-
-// node_modules/chalk/source/index.js
-var { stdout: stdoutColor, stderr: stderrColor } = supports_color_default;
-var GENERATOR = /* @__PURE__ */ Symbol("GENERATOR");
-var STYLER = /* @__PURE__ */ Symbol("STYLER");
-var IS_EMPTY = /* @__PURE__ */ Symbol("IS_EMPTY");
-var levelMapping = [
-  "ansi",
-  "ansi",
-  "ansi256",
-  "ansi16m"
-];
-var styles2 = /* @__PURE__ */ Object.create(null);
-var applyOptions = (object, options = {}) => {
-  if (options.level && !(Number.isInteger(options.level) && options.level >= 0 && options.level <= 3)) {
-    throw new Error("The `level` option should be an integer from 0 to 3");
-  }
-  const colorLevel = stdoutColor ? stdoutColor.level : 0;
-  object.level = options.level === void 0 ? colorLevel : options.level;
-};
-var chalkFactory = (options) => {
-  const chalk2 = (...strings) => strings.join(" ");
-  applyOptions(chalk2, options);
-  Object.setPrototypeOf(chalk2, createChalk.prototype);
-  return chalk2;
-};
-function createChalk(options) {
-  return chalkFactory(options);
-}
-Object.setPrototypeOf(createChalk.prototype, Function.prototype);
-for (const [styleName, style] of Object.entries(ansi_styles_default)) {
-  styles2[styleName] = {
-    get() {
-      const builder = createBuilder(this, createStyler(style.open, style.close, this[STYLER]), this[IS_EMPTY]);
-      Object.defineProperty(this, styleName, { value: builder });
-      return builder;
-    }
-  };
-}
-styles2.visible = {
-  get() {
-    const builder = createBuilder(this, this[STYLER], true);
-    Object.defineProperty(this, "visible", { value: builder });
-    return builder;
-  }
-};
-var getModelAnsi = (model, level, type, ...arguments_) => {
-  if (model === "rgb") {
-    if (level === "ansi16m") {
-      return ansi_styles_default[type].ansi16m(...arguments_);
-    }
-    if (level === "ansi256") {
-      return ansi_styles_default[type].ansi256(ansi_styles_default.rgbToAnsi256(...arguments_));
-    }
-    return ansi_styles_default[type].ansi(ansi_styles_default.rgbToAnsi(...arguments_));
-  }
-  if (model === "hex") {
-    return getModelAnsi("rgb", level, type, ...ansi_styles_default.hexToRgb(...arguments_));
-  }
-  return ansi_styles_default[type][model](...arguments_);
-};
-var usedModels = ["rgb", "hex", "ansi256"];
-for (const model of usedModels) {
-  styles2[model] = {
-    get() {
-      const { level } = this;
-      return function(...arguments_) {
-        const styler = createStyler(getModelAnsi(model, levelMapping[level], "color", ...arguments_), ansi_styles_default.color.close, this[STYLER]);
-        return createBuilder(this, styler, this[IS_EMPTY]);
-      };
-    }
-  };
-  const bgModel = "bg" + model[0].toUpperCase() + model.slice(1);
-  styles2[bgModel] = {
-    get() {
-      const { level } = this;
-      return function(...arguments_) {
-        const styler = createStyler(getModelAnsi(model, levelMapping[level], "bgColor", ...arguments_), ansi_styles_default.bgColor.close, this[STYLER]);
-        return createBuilder(this, styler, this[IS_EMPTY]);
-      };
-    }
-  };
-}
-var proto = Object.defineProperties(() => {
-}, {
-  ...styles2,
-  level: {
-    enumerable: true,
-    get() {
-      return this[GENERATOR].level;
-    },
-    set(level) {
-      this[GENERATOR].level = level;
-    }
-  }
-});
-var createStyler = (open, close, parent) => {
-  let openAll;
-  let closeAll;
-  if (parent === void 0) {
-    openAll = open;
-    closeAll = close;
-  } else {
-    openAll = parent.openAll + open;
-    closeAll = close + parent.closeAll;
-  }
-  return {
-    open,
-    close,
-    openAll,
-    closeAll,
-    parent
-  };
-};
-var createBuilder = (self, _styler, _isEmpty) => {
-  const builder = (...arguments_) => applyStyle(builder, arguments_.length === 1 ? "" + arguments_[0] : arguments_.join(" "));
-  Object.setPrototypeOf(builder, proto);
-  builder[GENERATOR] = self;
-  builder[STYLER] = _styler;
-  builder[IS_EMPTY] = _isEmpty;
-  return builder;
-};
-var applyStyle = (self, string) => {
-  if (self.level <= 0 || !string) {
-    return self[IS_EMPTY] ? "" : string;
-  }
-  let styler = self[STYLER];
-  if (styler === void 0) {
-    return string;
-  }
-  const { openAll, closeAll } = styler;
-  if (string.includes("\x1B")) {
-    while (styler !== void 0) {
-      string = stringReplaceAll(string, styler.close, styler.open);
-      styler = styler.parent;
-    }
-  }
-  const lfIndex = string.indexOf("\n");
-  if (lfIndex !== -1) {
-    string = stringEncaseCRLFWithFirstIndex(string, closeAll, openAll, lfIndex);
-  }
-  return openAll + string + closeAll;
-};
-Object.defineProperties(createChalk.prototype, styles2);
-var chalk = createChalk();
-var chalkStderr = createChalk({ level: stderrColor ? stderrColor.level : 0 });
-var source_default = chalk;
-
-// src/cli/inject.ts
 import fs5 from "fs";
 import path6 from "path";
 import os6 from "os";
@@ -4870,7 +5002,7 @@ async function startServer() {
   let config = await loadConfig();
   let db2;
   try {
-    db2 = getDatabase();
+    db2 = await getDb();
   } catch (error) {
     logger2.error("Failed to open database", { error: String(error) });
     process.exit(1);
@@ -4883,9 +5015,9 @@ async function startServer() {
       logger2.info(`Auto-detected model provider: ${selection.provider}/${selection.model}`);
     }
   }
-  const sessionStore = new SessionStore(db2);
-  const decisionStore = new DecisionStore(db2);
-  const warningStore = new WarningStore(db2);
+  const sessionStore = new SessionStore(db2, saveToFile);
+  const decisionStore = new DecisionStore(db2, saveToFile);
+  const warningStore = new WarningStore(db2, saveToFile);
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [
@@ -4972,7 +5104,8 @@ async function startServer() {
             modelClient,
             extractionMode,
             threshold: config.threshold,
-            sensitivity: config.sensitivity
+            sensitivity: config.sensitivity,
+            saveFn: saveToFile
           });
           if (result.hasWarning) {
             const formatted = formatWarning(result);
@@ -5064,11 +5197,11 @@ Decisions will be tracked automatically. Call openrot_check after each AI respon
   const transport = new StdioServerTransport();
   await server.connect(transport);
   process.on("SIGINT", () => {
-    closeDatabase();
+    closeDb();
     process.exit(0);
   });
   process.on("SIGTERM", () => {
-    closeDatabase();
+    closeDb();
     process.exit(0);
   });
   logger2.info("OpenRot MCP server started");
@@ -5085,7 +5218,7 @@ import os9 from "os";
 import fs9 from "fs";
 import { execSync } from "child_process";
 async function runInit() {
-  console.log(source_default.bold("\n\u{1F50D} OpenRot \u2014 Setup\n"));
+  console.log(source_default.bold("\n\u{1F50D} OpenRot v2 \u2014 Setup\n"));
   console.log(source_default.dim("Detecting editors and providers..."));
   const env3 = await detectEnvironment();
   const config = { ...DEFAULT_CONFIG };
@@ -5114,6 +5247,16 @@ async function runInit() {
   if (env3.editors.cursor) console.log(source_default.green("  \u2705 Cursor"));
   if (env3.editors.vscode) console.log(source_default.green("  \u2705 VS Code"));
   if (env3.editors.antigravity) console.log(source_default.green("  \u2705 Google Antigravity"));
+  if (env3.editors.claudeCode) {
+    const hookResult = registerClaudeCodeHooks();
+    if (hookResult === "registered") {
+      console.log(source_default.green("  \u2705 Claude Code \u2014 hooks registered (Stop, SessionStart, PreCompact)"));
+    } else if (hookResult === "exists") {
+      console.log(source_default.blue("  \u2139\uFE0F  Claude Code \u2014 hooks already registered"));
+    } else {
+      console.log(source_default.yellow("  \u26A0\uFE0F  Could not register Claude Code hooks"));
+    }
+  }
   if (!env3.editors.claudeCode && !env3.editors.cursor && !env3.editors.vscode && !env3.editors.antigravity) {
     console.log(source_default.dim("  (none detected)"));
   }
@@ -5170,11 +5313,10 @@ async function runInit() {
   console.log(source_default.bold("\u2501".repeat(45)));
   console.log(source_default.green.bold("\u{1F389} OpenRot is ready!"));
   console.log("");
-  if (detectedEditors.length > 0) {
-    console.log("  Restart your editor(s) for changes to take effect.");
-  }
+  console.log("  Your AI sessions are now monitored automatically.");
+  console.log("  You'll only hear from OpenRot when something matters.");
+  console.log("");
   console.log("  Run", source_default.bold("openrot test"), "to verify everything works.");
-  console.log("  Run", source_default.bold("openrot serve"), "to start the MCP server.");
   console.log("");
 }
 async function offerClipboardCopy(text) {
@@ -5336,6 +5478,64 @@ function resolveOpenrotCommand() {
   }
   return "openrot";
 }
+function registerClaudeCodeHooks() {
+  try {
+    const homeDir = os9.homedir();
+    const settingsPath = path11.join(homeDir, ".claude", "settings.json");
+    const claudeDir = path11.join(homeDir, ".claude");
+    if (!fs9.existsSync(claudeDir)) {
+      fs9.mkdirSync(claudeDir, { recursive: true });
+    }
+    const openrotCmd = resolveOpenrotCommand();
+    const openrotHooks = {
+      Stop: [
+        {
+          hooks: [
+            { type: "command", command: `${openrotCmd} analyze`, timeout: 10 }
+          ]
+        }
+      ],
+      SessionStart: [
+        {
+          hooks: [
+            { type: "command", command: `${openrotCmd} session-start` }
+          ]
+        }
+      ],
+      PreCompact: [
+        {
+          hooks: [
+            { type: "command", command: `${openrotCmd} pre-compact` }
+          ]
+        }
+      ]
+    };
+    let settings = {};
+    if (fs9.existsSync(settingsPath)) {
+      try {
+        settings = JSON.parse(fs9.readFileSync(settingsPath, "utf-8"));
+      } catch {
+      }
+    }
+    if (settings.hooks) {
+      const hasOpenrot = JSON.stringify(settings.hooks).includes("openrot");
+      if (hasOpenrot) return "exists";
+    }
+    if (!settings.hooks) {
+      settings.hooks = {};
+    }
+    for (const [event, hookEntries] of Object.entries(openrotHooks)) {
+      if (!settings.hooks[event]) {
+        settings.hooks[event] = [];
+      }
+      settings.hooks[event].push(...hookEntries);
+    }
+    fs9.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + "\n", "utf-8");
+    return "registered";
+  } catch {
+    return "error";
+  }
+}
 
 // src/cli/config.ts
 init_esm_shims();
@@ -5441,10 +5641,10 @@ async function runStatus() {
   }
   console.log("");
   try {
-    const db2 = getDatabase();
-    const sessionStore = new SessionStore(db2);
-    const decisionStore = new DecisionStore(db2);
-    const warningStore = new WarningStore(db2);
+    const db2 = await getDb();
+    const sessionStore = new SessionStore(db2, saveToFile);
+    const decisionStore = new DecisionStore(db2, saveToFile);
+    const warningStore = new WarningStore(db2, saveToFile);
     const sessions = sessionStore.getAll();
     console.log(source_default.bold("Sessions:"));
     if (sessions.length === 0) {
@@ -5498,8 +5698,8 @@ async function runTest() {
   console.log(source_default.bold("\n\u{1F9EA} OpenRot \u2014 Self Test\n"));
   let allPassed = true;
   try {
-    const db2 = getDatabase();
-    db2.prepare("SELECT 1").get();
+    const db2 = await getDb();
+    db2.exec("SELECT 1");
     console.log(source_default.green("\u2705 Database: OK"));
   } catch (error) {
     console.log(source_default.red(`\u274C Database: ${error}`));
@@ -5756,10 +5956,1387 @@ async function handleCloudProvider(provider, inquirer) {
   };
 }
 
+// src/cli/handoff.ts
+init_esm_shims();
+
+// src/transcript/index.ts
+init_esm_shims();
+import fs10 from "fs";
+function parseTranscript(transcriptPath) {
+  try {
+    if (!fs10.existsSync(transcriptPath)) return [];
+    const content = fs10.readFileSync(transcriptPath, "utf-8");
+    return parseTranscriptContent(content);
+  } catch {
+    return [];
+  }
+}
+function parseTranscriptContent(content) {
+  const messages = [];
+  const lines = content.split("\n").filter((l) => l.trim().length > 0);
+  for (const line of lines) {
+    try {
+      const parsed = JSON.parse(line);
+      if (parsed.type && parsed.message) {
+        messages.push(parsed);
+      }
+    } catch {
+    }
+  }
+  return messages;
+}
+function getMessageText(msg) {
+  if (typeof msg.message.content === "string") {
+    return msg.message.content;
+  }
+  if (Array.isArray(msg.message.content)) {
+    return msg.message.content.filter((block) => block.type === "text" && block.text).map((block) => block.text).join("\n");
+  }
+  return "";
+}
+function getLastAssistantResponses(messages, count = 5) {
+  return messages.filter((m) => m.type === "assistant").slice(-count).map(getMessageText).filter((t) => t.length > 0);
+}
+function countTurns(messages) {
+  return messages.filter((m) => m.type === "assistant").length;
+}
+function getUserMessages(messages) {
+  return messages.filter((m) => m.type === "user").map(getMessageText).filter((t) => t.length > 0);
+}
+function getAssistantMessages(messages) {
+  return messages.filter((m) => m.type === "assistant").map(getMessageText).filter((t) => t.length > 0);
+}
+
+// src/handoff/extractor.ts
+init_esm_shims();
+function extractHandoffData(messages, decisions, projectName) {
+  const assistantTexts = getAssistantMessages(messages);
+  const userTexts = getUserMessages(messages);
+  const completed = extractCompleted(assistantTexts);
+  const inProgress = extractInProgress(assistantTexts, userTexts);
+  const unresolved = extractUnresolved(assistantTexts, userTexts);
+  return {
+    projectName,
+    decisions,
+    completed,
+    inProgress,
+    unresolved
+  };
+}
+function extractCompleted(assistantTexts) {
+  const completed = [];
+  const seen = /* @__PURE__ */ new Set();
+  const donePatterns = [
+    /(?:I've|I have|we've|we have)\s+(?:created|built|implemented|added|set up|configured|written|updated|fixed|completed)\s+(.+?)(?:\.|$)/gi,
+    /(?:created|built|implemented|added|set up|configured|updated|fixed)\s+(?:the\s+)?(.+?)(?:\s+(?:successfully|for you|as requested))/gi,
+    /✅\s*(.+)/g,
+    /Done[!.]?\s*(.+)/gi
+  ];
+  for (const text of assistantTexts) {
+    for (const pattern of donePatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const item = match[1].trim().substring(0, 100);
+        if (item.length > 5 && !seen.has(item.toLowerCase())) {
+          seen.add(item.toLowerCase());
+          completed.push(item);
+        }
+      }
+    }
+  }
+  return completed.slice(0, 20);
+}
+function extractInProgress(assistantTexts, userTexts) {
+  const inProgress = [];
+  const lastAssistant = assistantTexts.slice(-3);
+  const lastUser = userTexts.slice(-3);
+  const progressPatterns = [
+    /(?:I'm|I am|let me|I'll|I will)\s+(?:now\s+)?(?:working on|implementing|building|creating|adding|fixing|updating)\s+(.+?)(?:\.|$)/gi,
+    /(?:next|now)\s+(?:I'll|let's|we'll)\s+(.+?)(?:\.|$)/gi
+  ];
+  for (const text of [...lastAssistant, ...lastUser]) {
+    for (const pattern of progressPatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const item = match[1].trim().substring(0, 100);
+        if (item.length > 5) {
+          inProgress.push(item);
+        }
+      }
+    }
+  }
+  return inProgress.slice(0, 5);
+}
+function extractUnresolved(assistantTexts, userTexts) {
+  const unresolved = [];
+  const issuePatterns = [
+    /(?:error|bug|issue|problem|fail(?:ure|ed|s)?|broken|doesn't work|not working|TODO)\s*[:\-]?\s*(.+?)(?:\.|$)/gi,
+    /(?:need(?:s)? to|should|must)\s+(?:fix|resolve|address|handle|investigate)\s+(.+?)(?:\.|$)/gi
+  ];
+  const recentTexts = [...assistantTexts.slice(-5), ...userTexts.slice(-5)];
+  for (const text of recentTexts) {
+    for (const pattern of issuePatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const item = match[1].trim().substring(0, 100);
+        if (item.length > 5) {
+          unresolved.push(item);
+        }
+      }
+    }
+  }
+  return unresolved.slice(0, 10);
+}
+
+// src/handoff/formatter.ts
+init_esm_shims();
+function formatHandoff(data, target) {
+  const lines = [
+    "---",
+    `Continuing a previous session on ${data.projectName}.`,
+    ""
+  ];
+  if (data.decisions.length > 0) {
+    lines.push("STACK DECISIONS:");
+    for (const decision of data.decisions) {
+      lines.push(`- ${decision}`);
+    }
+    lines.push("");
+  }
+  if (data.completed.length > 0) {
+    lines.push("COMPLETED THIS SESSION:");
+    for (const item of data.completed) {
+      lines.push(`- ${item}`);
+    }
+    lines.push("");
+  }
+  if (data.inProgress.length > 0) {
+    lines.push("IN PROGRESS:");
+    for (const item of data.inProgress) {
+      lines.push(`- ${item}`);
+    }
+    lines.push("");
+  }
+  if (data.unresolved.length > 0) {
+    lines.push("UNRESOLVED:");
+    for (const item of data.unresolved) {
+      lines.push(`- ${item}`);
+    }
+    lines.push("");
+  }
+  const lastTask = data.inProgress[0] || data.completed[data.completed.length - 1] || "the current task";
+  lines.push(`Continue from ${lastTask}.`);
+  lines.push("---");
+  return lines.join("\n");
+}
+function formatForEditor(handoff, editor) {
+  switch (editor) {
+    case "cursor":
+      return `# Project Context (from OpenRot handoff)
+
+${handoff}`;
+    case "claude":
+      return `# OpenRot Handoff \u2014 Session Context
+
+${handoff}`;
+    case "antigravity":
+      return `# OpenRot Handoff \u2014 Session Context
+
+${handoff}`;
+    case "copilot":
+      return `# Project Context (OpenRot handoff)
+
+${handoff}`;
+    default:
+      return handoff;
+  }
+}
+
+// src/handoff/index.ts
+init_esm_shims();
+
+// src/handoff/templates.ts
+init_esm_shims();
+var EDITOR_FILE_NAMES = {
+  claude: "CLAUDE.md",
+  cursor: ".cursorrules",
+  antigravity: "AGENT.md",
+  copilot: ".github/copilot-instructions.md"
+};
+
+// src/handoff/index.ts
+import { v4 as uuidv44 } from "uuid";
+import path12 from "path";
+import os10 from "os";
+import fs11 from "fs";
+async function generateHandoff(db2, sessionId, messages, projectName) {
+  const decisionStore = new DecisionStore(db2);
+  const decisionRows = decisionStore.getBySessionId(sessionId);
+  const decisions = decisionRows.map((d) => d.commitment);
+  const handoffData = extractHandoffData(messages, decisions, projectName);
+  return formatHandoff(handoffData);
+}
+function saveHandoff(db2, sessionId, projectPath, prompt, saveFn = () => {
+}) {
+  try {
+    db2.run(
+      "INSERT INTO handoffs (id, session_id, project_path, prompt, created_at) VALUES (?, ?, ?, ?, ?)",
+      [uuidv44(), sessionId, projectPath, prompt, Date.now()]
+    );
+    saveFn();
+    const handoffDir = path12.join(os10.homedir(), ".openrot", "handoffs");
+    if (!fs11.existsSync(handoffDir)) {
+      fs11.mkdirSync(handoffDir, { recursive: true });
+    }
+    const date = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const projectSlug = projectPath.split(/[\\/]/).pop() || "unknown";
+    const filename = `${date}-${projectSlug}.md`;
+    fs11.writeFileSync(path12.join(handoffDir, filename), prompt, "utf-8");
+  } catch {
+  }
+}
+function saveHandoffForEditor(prompt, editor, projectPath) {
+  try {
+    const formatted = formatForEditor(prompt, editor);
+    const fileName = EDITOR_FILE_NAMES[editor];
+    if (!fileName) return null;
+    const filePath = path12.join(projectPath, fileName);
+    const dir = path12.dirname(filePath);
+    if (!fs11.existsSync(dir)) {
+      fs11.mkdirSync(dir, { recursive: true });
+    }
+    fs11.writeFileSync(filePath, formatted, "utf-8");
+    return filePath;
+  } catch {
+    return null;
+  }
+}
+
+// src/cli/handoff.ts
+import path13 from "path";
+import os11 from "os";
+import fs12 from "fs";
+async function runHandoff(options) {
+  try {
+    const db2 = await getDb();
+    const sessionStore = new SessionStore(db2);
+    const decisionStore = new DecisionStore(db2);
+    const sessions = sessionStore.getAll();
+    if (sessions.length === 0) {
+      console.log(source_default.yellow("No sessions found. Start coding with an AI tool first."));
+      return;
+    }
+    const latestSession = sessions[0];
+    const decisions = decisionStore.getBySessionId(latestSession.id);
+    const commitments = decisions.map((d) => d.commitment);
+    const cwd = process.cwd();
+    const projectName = path13.basename(cwd);
+    let messages = [];
+    const claudeDir = path13.join(os11.homedir(), ".claude", "projects");
+    if (fs12.existsSync(claudeDir)) {
+      try {
+        const projectDirs = fs12.readdirSync(claudeDir);
+        for (const dir of projectDirs) {
+          const sessionDir = path13.join(claudeDir, dir);
+          const files = fs12.readdirSync(sessionDir).filter((f) => f.endsWith(".jsonl"));
+          if (files.length > 0) {
+            const latestFile = files.sort().pop();
+            messages = parseTranscript(path13.join(sessionDir, latestFile));
+            if (messages.length > 0) break;
+          }
+        }
+      } catch {
+      }
+    }
+    const handoffData = extractHandoffData(messages, commitments, projectName);
+    const prompt = formatHandoff(handoffData);
+    saveHandoff(db2, latestSession.id, cwd, prompt, saveToFile);
+    console.log("");
+    console.log(source_default.bold("\u2501".repeat(60)));
+    console.log(prompt);
+    console.log(source_default.bold("\u2501".repeat(60)));
+    console.log("");
+    try {
+      const { default: clipboardy } = await Promise.resolve().then(() => (init_clipboardy(), clipboardy_exports));
+      await clipboardy.write(prompt);
+      console.log(source_default.green("\u2705 Copied to clipboard"));
+    } catch {
+      console.log(source_default.dim("(Could not copy to clipboard)"));
+    }
+    if (options.for) {
+      const editor = options.for.toLowerCase();
+      const fileName = EDITOR_FILE_NAMES[editor];
+      if (fileName) {
+        const formatted = formatForEditor(prompt, editor);
+        const filePath = saveHandoffForEditor(prompt, editor, cwd);
+        if (filePath) {
+          console.log(source_default.green(`\u2705 Saved to ${source_default.dim(filePath)}`));
+        } else {
+          console.log(source_default.yellow(`\u26A0\uFE0F  Could not save for ${editor}`));
+        }
+      } else {
+        console.log(source_default.yellow(`Unknown editor: ${options.for}. Use: claude, cursor, antigravity, copilot`));
+      }
+    }
+    const date = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+    const handoffPath = path13.join(os11.homedir(), ".openrot", "handoffs", `${date}-${projectName}.md`);
+    console.log(source_default.dim(`Saved to ${handoffPath}`));
+    console.log("");
+  } catch (error) {
+    console.error(source_default.red("Handoff failed:"), error);
+  }
+}
+
+// src/cli/scan.ts
+init_esm_shims();
+
+// src/scan/index.ts
+init_esm_shims();
+
+// src/scan/patterns.ts
+init_esm_shims();
+var SCAN_PATTERNS = [
+  // Styling decisions
+  {
+    decisionKeywords: ["tailwind", "tailwindcss"],
+    fileGlobs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js", "**/*.vue", "**/*.svelte"],
+    violationPatterns: [
+      /style\s*=\s*\{\{/g,
+      /style\s*=\s*"/g,
+      /styled-components/g,
+      /import.*\.module\.css/g,
+      /import.*\.module\.scss/g,
+      /from\s+['"]styled-components['"]/g,
+      /from\s+['"]@emotion/g
+    ],
+    description: "inline/alternative CSS instead of Tailwind"
+  },
+  {
+    decisionKeywords: ["inline style", "inline css"],
+    fileGlobs: ["**/*.tsx", "**/*.jsx"],
+    violationPatterns: [
+      /className\s*=/g,
+      /from\s+['"]tailwindcss['"]/g
+    ],
+    description: "Tailwind/className instead of inline styles"
+  },
+  {
+    decisionKeywords: ["styled-components"],
+    fileGlobs: ["**/*.tsx", "**/*.jsx", "**/*.ts"],
+    violationPatterns: [
+      /style\s*=\s*\{\{/g,
+      /className\s*=/g
+    ],
+    description: "non-styled-components styling"
+  },
+  // Database decisions
+  {
+    decisionKeywords: ["postgres", "postgresql"],
+    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
+    violationPatterns: [
+      /sqlite/gi,
+      /mysql/gi,
+      /mongodb/gi,
+      /from\s+['"]better-sqlite3['"]/g,
+      /from\s+['"]mysql2?['"]/g,
+      /from\s+['"]mongoose['"]/g
+    ],
+    description: "non-PostgreSQL database"
+  },
+  {
+    decisionKeywords: ["sqlite"],
+    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
+    violationPatterns: [
+      /postgres/gi,
+      /mysql/gi,
+      /mongodb/gi
+    ],
+    description: "non-SQLite database"
+  },
+  // ID decisions
+  {
+    decisionKeywords: ["uuid", "uuids"],
+    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
+    violationPatterns: [
+      /SERIAL\s+PRIMARY\s+KEY/gi,
+      /AUTO_INCREMENT/gi,
+      /autoIncrement/g,
+      /INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT/gi
+    ],
+    description: "auto-increment IDs instead of UUIDs"
+  },
+  {
+    decisionKeywords: ["serial", "auto_increment", "autoincrement"],
+    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
+    violationPatterns: [
+      /uuid/gi,
+      /from\s+['"]uuid['"]/g,
+      /crypto\.randomUUID/g
+    ],
+    description: "UUIDs instead of auto-increment IDs"
+  },
+  // Package manager decisions
+  {
+    decisionKeywords: ["npm only", "only npm", "use npm"],
+    fileGlobs: ["**/yarn.lock", "**/pnpm-lock.yaml", "**/.yarnrc*", "**/.pnpmfile*"],
+    violationPatterns: [/.+/g],
+    // Any content in these files is a violation
+    description: "non-npm package manager files"
+  },
+  {
+    decisionKeywords: ["yarn only", "only yarn", "use yarn"],
+    fileGlobs: ["**/package-lock.json", "**/pnpm-lock.yaml"],
+    violationPatterns: [/.+/g],
+    description: "non-yarn package manager files"
+  },
+  // Framework decisions
+  {
+    decisionKeywords: ["react query", "tanstack query"],
+    fileGlobs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    violationPatterns: [
+      /from\s+['"]swr['"]/g,
+      /import.*useSWR/g
+    ],
+    description: "SWR instead of React Query"
+  },
+  {
+    decisionKeywords: ["swr"],
+    fileGlobs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
+    violationPatterns: [
+      /from\s+['"]@tanstack\/react-query['"]/g,
+      /from\s+['"]react-query['"]/g,
+      /useQuery/g
+    ],
+    description: "React Query instead of SWR"
+  },
+  {
+    decisionKeywords: ["express"],
+    fileGlobs: ["**/*.ts", "**/*.js"],
+    violationPatterns: [
+      /from\s+['"]fastify['"]/g,
+      /from\s+['"]koa['"]/g,
+      /from\s+['"]hapi['"]/g
+    ],
+    description: "non-Express server framework"
+  },
+  // Auth decisions
+  {
+    decisionKeywords: ["jwt", "httponly cookies", "httponly cookie"],
+    fileGlobs: ["**/*.ts", "**/*.js"],
+    violationPatterns: [
+      /localStorage\.setItem.*token/gi,
+      /sessionStorage\.setItem.*token/gi
+    ],
+    description: "token stored in localStorage instead of httpOnly cookie"
+  },
+  {
+    decisionKeywords: ["no auth", "no authentication", "avoid auth"],
+    fileGlobs: ["**/*.ts", "**/*.js"],
+    violationPatterns: [
+      /from\s+['"]passport['"]/g,
+      /from\s+['"]jsonwebtoken['"]/g,
+      /jwt\.verify/g,
+      /bcrypt/g,
+      /auth\s*middleware/gi
+    ],
+    description: "authentication code despite being deferred"
+  }
+];
+function findPatternsForDecision(commitment) {
+  const lowerCommitment = commitment.toLowerCase();
+  return SCAN_PATTERNS.filter(
+    (pattern) => pattern.decisionKeywords.some((keyword) => lowerCommitment.includes(keyword))
+  );
+}
+
+// src/scan/index.ts
+import fs13 from "fs";
+import path14 from "path";
+var SKIP_DIRS = /* @__PURE__ */ new Set([
+  "node_modules",
+  ".git",
+  ".next",
+  ".nuxt",
+  "dist",
+  "build",
+  "out",
+  ".cache",
+  ".turbo",
+  "coverage",
+  "__pycache__",
+  ".openrot",
+  ".vscode",
+  ".idea"
+]);
+var SCANNABLE_EXTENSIONS = /* @__PURE__ */ new Set([
+  ".ts",
+  ".tsx",
+  ".js",
+  ".jsx",
+  ".vue",
+  ".svelte",
+  ".sql",
+  ".json",
+  ".yaml",
+  ".yml",
+  ".toml",
+  ".lock"
+]);
+function scanDirectory(dirPath, decisions) {
+  const violations = [];
+  for (const decision of decisions) {
+    const patterns = findPatternsForDecision(decision.commitment);
+    if (patterns.length === 0) continue;
+    for (const pattern of patterns) {
+      const files = walkFiles(dirPath);
+      for (const filePath of files) {
+        const fileViolations = scanFile(filePath, decision.commitment, pattern.violationPatterns, pattern.description);
+        violations.push(...fileViolations);
+      }
+    }
+  }
+  return deduplicateViolations(violations);
+}
+function scanFiles(filePaths, decisions) {
+  const violations = [];
+  for (const filePath of filePaths) {
+    if (!fs13.existsSync(filePath)) continue;
+    for (const decision of decisions) {
+      const patterns = findPatternsForDecision(decision.commitment);
+      for (const pattern of patterns) {
+        const fileViolations = scanFile(filePath, decision.commitment, pattern.violationPatterns, pattern.description);
+        violations.push(...fileViolations);
+      }
+    }
+  }
+  return deduplicateViolations(violations);
+}
+function scanFile(filePath, decision, violationPatterns, _description) {
+  const violations = [];
+  try {
+    const basename = path14.basename(filePath);
+    if (basename === "yarn.lock" || basename === "pnpm-lock.yaml" || basename === "package-lock.json") {
+      violations.push({
+        filePath,
+        line: 0,
+        decision,
+        found: `${basename} file exists`
+      });
+      return violations;
+    }
+    const content = fs13.readFileSync(filePath, "utf-8");
+    const lines = content.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      for (const pattern of violationPatterns) {
+        pattern.lastIndex = 0;
+        const match = pattern.exec(line);
+        if (match) {
+          violations.push({
+            filePath,
+            line: i + 1,
+            decision,
+            found: match[0].trim().substring(0, 80)
+          });
+          break;
+        }
+      }
+    }
+  } catch {
+  }
+  return violations;
+}
+function walkFiles(dirPath) {
+  const results = [];
+  try {
+    const entries = fs13.readdirSync(dirPath, { withFileTypes: true });
+    for (const entry of entries) {
+      if (SKIP_DIRS.has(entry.name)) continue;
+      const fullPath = path14.join(dirPath, entry.name);
+      if (entry.isDirectory()) {
+        results.push(...walkFiles(fullPath));
+      } else if (entry.isFile()) {
+        const ext = path14.extname(entry.name);
+        if (SCANNABLE_EXTENSIONS.has(ext) || entry.name.endsWith(".lock")) {
+          results.push(fullPath);
+        }
+      }
+    }
+  } catch {
+  }
+  return results;
+}
+function deduplicateViolations(violations) {
+  const seen = /* @__PURE__ */ new Set();
+  return violations.filter((v) => {
+    const key = `${v.filePath}:${v.line}:${v.decision}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+// src/cli/scan.ts
+async function runScan(options) {
+  try {
+    const db2 = await getDb();
+    const decisionStore = new DecisionStore(db2);
+    const decisions = decisionStore.getAll();
+    if (decisions.length === 0) {
+      console.log(source_default.dim("No decisions stored. Start a coding session first."));
+      return;
+    }
+    let violations;
+    if (options.files) {
+      const input = await readStdin();
+      const files = input.split("\n").map((f) => f.trim()).filter((f) => f.length > 0);
+      violations = scanFiles(files, decisions);
+    } else {
+      const scanPath = options.path || process.cwd();
+      console.log(source_default.dim(`Scanning ${scanPath} against ${decisions.length} decisions...
+`));
+      violations = scanDirectory(scanPath, decisions);
+    }
+    if (violations.length === 0) {
+      console.log(source_default.green("\u2705 No violations found"));
+      process.exit(0);
+      return;
+    }
+    console.log(source_default.bold("\u2501".repeat(60)));
+    console.log(source_default.bold(`OpenRot Scan \u2014 ${violations.length} violation${violations.length > 1 ? "s" : ""} found
+`));
+    for (const v of violations) {
+      const icon = "\u274C";
+      const loc = v.line > 0 ? `${v.filePath}:${v.line}` : v.filePath;
+      console.log(source_default.red(`${icon} ${loc}`));
+      console.log(source_default.dim(`   Decision: "${v.decision}"`));
+      console.log(source_default.dim(`   Found: ${v.found}`));
+      console.log("");
+    }
+    console.log(source_default.bold("\u2501".repeat(60)));
+    if (options.files) {
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error(source_default.red("Scan failed:"), error);
+  }
+}
+function readStdin() {
+  return new Promise((resolve) => {
+    let data = "";
+    if (process.stdin.isTTY) {
+      resolve("");
+      return;
+    }
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (chunk) => {
+      data += chunk;
+    });
+    process.stdin.on("end", () => {
+      resolve(data);
+    });
+    process.stdin.resume();
+  });
+}
+
+// src/cli/guard.ts
+init_esm_shims();
+
+// src/scan/guard.ts
+init_esm_shims();
+import fs14 from "fs";
+import path15 from "path";
+var HOOK_SCRIPT_UNIX = `#!/bin/sh
+# OpenRot pre-commit hook \u2014 scans staged files against decisions
+staged_files=$(git diff --cached --name-only --diff-filter=ACM)
+if [ -z "$staged_files" ]; then
+  exit 0
+fi
+
+result=$(echo "$staged_files" | xargs openrot scan --files 2>&1)
+exit_code=$?
+
+if [ $exit_code -ne 0 ]; then
+  echo "$result"
+  echo ""
+  echo "Commit blocked by OpenRot. Fix violations or bypass with: git commit --no-verify"
+  exit 1
+fi
+
+exit 0
+`;
+var HOOK_MARKER = "# OpenRot pre-commit hook";
+function installGuard(projectPath) {
+  try {
+    const gitDir = path15.join(projectPath, ".git");
+    if (!fs14.existsSync(gitDir)) {
+      return { success: false, message: "Not a git repository" };
+    }
+    const hooksDir = path15.join(gitDir, "hooks");
+    if (!fs14.existsSync(hooksDir)) {
+      fs14.mkdirSync(hooksDir, { recursive: true });
+    }
+    const hookPath = path15.join(hooksDir, "pre-commit");
+    if (fs14.existsSync(hookPath)) {
+      const content = fs14.readFileSync(hookPath, "utf-8");
+      if (content.includes(HOOK_MARKER)) {
+        return { success: true, message: "OpenRot hook already installed" };
+      }
+      fs14.appendFileSync(hookPath, "\n\n" + HOOK_SCRIPT_UNIX, "utf-8");
+    } else {
+      fs14.writeFileSync(hookPath, HOOK_SCRIPT_UNIX, { mode: 493 });
+    }
+    try {
+      fs14.chmodSync(hookPath, 493);
+    } catch {
+    }
+    return { success: true, message: `Pre-commit hook installed at ${hookPath}` };
+  } catch (error) {
+    return { success: false, message: `Failed to install hook: ${error}` };
+  }
+}
+function removeGuard(projectPath) {
+  try {
+    const hookPath = path15.join(projectPath, ".git", "hooks", "pre-commit");
+    if (!fs14.existsSync(hookPath)) {
+      return { success: true, message: "No pre-commit hook found" };
+    }
+    const content = fs14.readFileSync(hookPath, "utf-8");
+    if (!content.includes(HOOK_MARKER)) {
+      return { success: true, message: "No OpenRot hook found in pre-commit" };
+    }
+    const cleaned = content.replace(new RegExp(`\\n?${HOOK_MARKER}[\\s\\S]*?exit 0\\n`, "g"), "").trim();
+    if (cleaned.length === 0 || cleaned === "#!/bin/sh") {
+      fs14.unlinkSync(hookPath);
+    } else {
+      fs14.writeFileSync(hookPath, cleaned + "\n", "utf-8");
+    }
+    return { success: true, message: "OpenRot pre-commit hook removed" };
+  } catch (error) {
+    return { success: false, message: `Failed to remove hook: ${error}` };
+  }
+}
+
+// src/cli/guard.ts
+function runGuard(options) {
+  const projectPath = process.cwd();
+  if (options.remove) {
+    const result2 = removeGuard(projectPath);
+    if (result2.success) {
+      console.log(source_default.green(`\u2705 ${result2.message}`));
+    } else {
+      console.log(source_default.red(`\u274C ${result2.message}`));
+    }
+    return;
+  }
+  const result = installGuard(projectPath);
+  if (result.success) {
+    console.log(source_default.green(`\u2705 ${result.message}`));
+    console.log(source_default.dim("   Bypass with: git commit --no-verify"));
+  } else {
+    console.log(source_default.red(`\u274C ${result.message}`));
+  }
+}
+
+// src/cli/sync.ts
+init_esm_shims();
+
+// src/sync/index.ts
+init_esm_shims();
+
+// src/sync/writers.ts
+init_esm_shims();
+import fs15 from "fs";
+import path16 from "path";
+var MARKER_START2 = "<!-- openrot-decisions-start -->";
+var MARKER_END2 = "<!-- openrot-decisions-end -->";
+function writeDecisions(target, decisions) {
+  try {
+    const { filePath } = target;
+    const block = buildDecisionBlock(decisions);
+    const dir = path16.dirname(filePath);
+    if (!fs15.existsSync(dir)) {
+      fs15.mkdirSync(dir, { recursive: true });
+    }
+    if (fs15.existsSync(filePath)) {
+      const content = fs15.readFileSync(filePath, "utf-8");
+      if (content.includes(MARKER_START2)) {
+        const regex = new RegExp(
+          `${escapeRegExp2(MARKER_START2)}[\\s\\S]*?${escapeRegExp2(MARKER_END2)}`,
+          "g"
+        );
+        const updated = content.replace(regex, block);
+        fs15.writeFileSync(filePath, updated, "utf-8");
+        return "updated";
+      }
+      const separator = content.endsWith("\n") ? "\n" : "\n\n";
+      fs15.writeFileSync(filePath, content + separator + block + "\n", "utf-8");
+      return "updated";
+    }
+    fs15.writeFileSync(filePath, block + "\n", "utf-8");
+    return "created";
+  } catch {
+    return "error";
+  }
+}
+function buildDecisionBlock(decisions) {
+  const lines = [
+    MARKER_START2,
+    "## Project Decisions (managed by OpenRot)"
+  ];
+  for (const decision of decisions) {
+    lines.push(`- ${decision}`);
+  }
+  lines.push(MARKER_END2);
+  return lines.join("\n");
+}
+function getProjectWriterTargets(projectPath) {
+  return [
+    { label: "Claude Code", filePath: path16.join(projectPath, "CLAUDE.md") },
+    { label: "Cursor", filePath: path16.join(projectPath, ".cursorrules") },
+    { label: "Copilot", filePath: path16.join(projectPath, ".github", "copilot-instructions.md") },
+    { label: "Antigravity", filePath: path16.join(projectPath, "AGENT.md") }
+  ];
+}
+function escapeRegExp2(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// src/sync/index.ts
+async function syncDecisionsToProject(db2, projectPath) {
+  const synced = [];
+  const failed = [];
+  try {
+    const decisionStore = new DecisionStore(db2);
+    const decisions = decisionStore.getAllForProject(projectPath);
+    const commitments = decisions.map((d) => d.commitment);
+    if (commitments.length === 0) {
+      return { synced, failed };
+    }
+    const targets = getProjectWriterTargets(projectPath);
+    for (const target of targets) {
+      const result = writeDecisions(target, commitments);
+      if (result === "error") {
+        failed.push(target.label);
+      } else {
+        synced.push(target.label);
+      }
+    }
+  } catch {
+  }
+  return { synced, failed };
+}
+
+// src/cli/sync.ts
+async function runSync() {
+  try {
+    const cwd = process.cwd();
+    const db2 = await getDb();
+    console.log(source_default.bold("\n\u{1F504} OpenRot \u2014 Syncing Decisions\n"));
+    console.log(source_default.dim(`Project: ${cwd}
+`));
+    const { synced, failed } = await syncDecisionsToProject(db2, cwd);
+    if (synced.length === 0 && failed.length === 0) {
+      console.log(source_default.dim("No decisions to sync."));
+    } else {
+      for (const label of synced) {
+        console.log(source_default.green(`  \u2705 ${label}`));
+      }
+      for (const label of failed) {
+        console.log(source_default.yellow(`  \u26A0\uFE0F  ${label} \u2014 failed`));
+      }
+    }
+    console.log("");
+  } catch (error) {
+    console.error(source_default.red("Sync failed:"), error);
+  }
+}
+
+// src/cli/recap.ts
+init_esm_shims();
+
+// src/scoring/index.ts
+init_esm_shims();
+
+// src/scoring/contradictions.ts
+init_esm_shims();
+function scoreContradictions2(db2, sessionId) {
+  try {
+    const decisionStore = new DecisionStore(db2);
+    const warningStore = new WarningStore(db2);
+    const decisions = decisionStore.getBySessionId(sessionId);
+    const warnings = warningStore.getBySessionId(sessionId);
+    if (decisions.length === 0) return 0;
+    const contradictionRate = warnings.length / decisions.length;
+    return Math.min(100, contradictionRate * 100);
+  } catch {
+    return 0;
+  }
+}
+
+// src/scoring/repetition.ts
+init_esm_shims();
+function scoreRepetitionFast(recentResponses) {
+  if (recentResponses.length < 2) return 0;
+  const texts = recentResponses.slice(-5);
+  let totalSimilarity = 0;
+  let pairCount = 0;
+  for (let i = 1; i < texts.length; i++) {
+    const sim = jaccardSimilarity(texts[i - 1], texts[i]);
+    totalSimilarity += sim;
+    pairCount++;
+  }
+  if (pairCount === 0) return 0;
+  return Math.min(100, totalSimilarity / pairCount * 100);
+}
+function jaccardSimilarity(a, b) {
+  const wordsA = new Set(a.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
+  const wordsB = new Set(b.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
+  if (wordsA.size === 0 || wordsB.size === 0) return 0;
+  let intersection = 0;
+  for (const word of wordsA) {
+    if (wordsB.has(word)) intersection++;
+  }
+  const union = wordsA.size + wordsB.size - intersection;
+  return union === 0 ? 0 : intersection / union;
+}
+
+// src/scoring/saturation.ts
+init_esm_shims();
+
+// src/transcript/tokens.ts
+init_esm_shims();
+var CHARS_PER_TOKEN = 4;
+var CONTEXT_LIMIT = 2e5;
+function estimateTokens(text) {
+  return Math.ceil(text.length / CHARS_PER_TOKEN);
+}
+function estimateTotalTokens(messages) {
+  let total = 0;
+  for (const msg of messages) {
+    total += estimateTokens(getMessageText(msg));
+  }
+  return total;
+}
+function estimateSaturation(messages) {
+  const totalTokens = estimateTotalTokens(messages);
+  return Math.min(100, totalTokens / CONTEXT_LIMIT * 100);
+}
+function countHedgingPhrases(text) {
+  const hedgingPatterns = [
+    /\bi think\b/gi,
+    /\bperhaps\b/gi,
+    /\bit seems\b/gi,
+    /\bmaybe\b/gi,
+    /\bmight be\b/gi,
+    /\bcould be\b/gi,
+    /\bi believe\b/gi,
+    /\bpossibly\b/gi,
+    /\bI'm not (?:entirely )?sure\b/gi,
+    /\bif I recall\b/gi,
+    /\bI would guess\b/gi,
+    /\bnot certain\b/gi
+  ];
+  let count = 0;
+  for (const pattern of hedgingPatterns) {
+    const matches = text.match(pattern);
+    if (matches) count += matches.length;
+  }
+  return count;
+}
+function detectShrinkingResponses(responses) {
+  if (responses.length < 3) return 0;
+  const lengths = responses.map((r) => r.length);
+  const firstHalf = lengths.slice(0, Math.floor(lengths.length / 2));
+  const secondHalf = lengths.slice(Math.floor(lengths.length / 2));
+  const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
+  const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
+  if (avgFirst === 0) return 0;
+  const ratio = avgSecond / avgFirst;
+  if (ratio < 0.5) return 1;
+  if (ratio < 0.75) return 0.5;
+  if (ratio < 0.9) return 0.2;
+  return 0;
+}
+
+// src/scoring/saturation.ts
+function scoreSaturation(messages) {
+  try {
+    if (messages.length === 0) return 0;
+    const baseSaturation = estimateSaturation(messages);
+    const assistantTexts = getAssistantMessages(messages);
+    const recentTexts = assistantTexts.slice(-5);
+    let hedgingPenalty = 0;
+    if (recentTexts.length > 0) {
+      const totalHedging = recentTexts.reduce(
+        (sum, text) => sum + countHedgingPhrases(text),
+        0
+      );
+      const avgHedging = totalHedging / recentTexts.length;
+      hedgingPenalty = Math.min(15, Math.max(0, (avgHedging - 1) * 5));
+    }
+    const shrinkingPenalty = detectShrinkingResponses(recentTexts) * 15;
+    return Math.min(100, baseSaturation + hedgingPenalty + shrinkingPenalty);
+  } catch {
+    return 0;
+  }
+}
+
+// src/scoring/index.ts
+import { v4 as uuidv45 } from "uuid";
+var SIGNAL_WEIGHTS = {
+  contradiction: 0.4,
+  repetition: 0.3,
+  saturation: 0.3
+};
+function computeRotScore(db2, sessionId, messages) {
+  const turn = countTurns(messages);
+  const contradictionScore = scoreContradictions2(db2, sessionId);
+  const recentResponses = getLastAssistantResponses(messages, 5);
+  const repetitionScore = scoreRepetitionFast(recentResponses);
+  const saturationScore = scoreSaturation(messages);
+  const combined = Math.round(
+    contradictionScore * SIGNAL_WEIGHTS.contradiction + repetitionScore * SIGNAL_WEIGHTS.repetition + saturationScore * SIGNAL_WEIGHTS.saturation
+  );
+  const level = getRotLevel(combined);
+  return {
+    contradictionScore: Math.round(contradictionScore),
+    repetitionScore: Math.round(repetitionScore),
+    saturationScore: Math.round(saturationScore),
+    combined,
+    level,
+    turn
+  };
+}
+function getRotLevel(score) {
+  if (score <= 30) return "green";
+  if (score <= 60) return "yellow";
+  return "red";
+}
+function formatRotOutput(score) {
+  if (score.level === "green" && score.combined < 15) {
+    return null;
+  }
+  if (score.level === "green") {
+    return { stdout: JSON.stringify({ suppressOutput: true }) };
+  }
+  if (score.level === "yellow") {
+    return {
+      stderr: `\u26A0\uFE0F OpenRot: Session health ${score.combined}% \u2014 quality may be degrading`
+    };
+  }
+  return {
+    stderr: `\u{1F534} OpenRot: Session health ${score.combined}% \u2014 output unreliable
+   Run 'openrot handoff' for a fresh start with full context preserved`
+  };
+}
+function saveRotScore(db2, sessionId, score, saveFn = () => {
+}) {
+  try {
+    db2.run(
+      `INSERT INTO rot_scores (id, session_id, turn, contradiction_score, repetition_score, saturation_score, combined_score, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
+        uuidv45(),
+        sessionId,
+        score.turn,
+        score.contradictionScore,
+        score.repetitionScore,
+        score.saturationScore,
+        score.combined,
+        Date.now()
+      ]
+    );
+    saveFn();
+  } catch {
+  }
+}
+function getLatestRotScore(db2, sessionId) {
+  try {
+    const results = db2.exec(
+      "SELECT * FROM rot_scores WHERE session_id = ? ORDER BY created_at DESC LIMIT 1",
+      [sessionId]
+    );
+    if (!results.length || !results[0].values.length) return null;
+    const cols = results[0].columns;
+    const vals = results[0].values[0];
+    const row = {};
+    cols.forEach((c, i) => {
+      row[c] = vals[i];
+    });
+    return {
+      contradictionScore: row.contradiction_score,
+      repetitionScore: row.repetition_score,
+      saturationScore: row.saturation_score,
+      combined: row.combined_score,
+      level: getRotLevel(row.combined_score),
+      turn: row.turn
+    };
+  } catch {
+    return null;
+  }
+}
+
+// src/cli/recap.ts
+import path17 from "path";
+import os12 from "os";
+import fs16 from "fs";
+async function runRecap() {
+  try {
+    const db2 = await getDb();
+    const sessionStore = new SessionStore(db2);
+    const decisionStore = new DecisionStore(db2);
+    const warningStore = new WarningStore(db2);
+    const sessions = sessionStore.getAll();
+    if (sessions.length === 0) {
+      console.log(source_default.dim("No sessions found."));
+      return;
+    }
+    const session = sessions[0];
+    const decisions = decisionStore.getBySessionId(session.id);
+    const warnings = warningStore.getBySessionId(session.id);
+    const latestScore = getLatestRotScore(db2, session.id);
+    const endTime = session.endedAt || Date.now();
+    const durationMs = endTime - session.createdAt;
+    const hours = Math.floor(durationMs / (1e3 * 60 * 60));
+    const minutes = Math.floor(durationMs % (1e3 * 60 * 60) / (1e3 * 60));
+    const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+    const date = new Date(session.createdAt).toLocaleDateString("en-US", {
+      month: "long",
+      day: "numeric",
+      year: "numeric"
+    });
+    const projectName = path17.basename(process.cwd());
+    const editor = session.editor || "Unknown";
+    const scoreStr = latestScore ? `${latestScore.combined}% (${latestScore.level})` : "N/A";
+    const recap = [
+      "\u2501".repeat(60),
+      `Session Recap \u2014 ${date}`,
+      `Project: ${projectName} \xB7 Tool: ${editor} \xB7 Duration: ${duration}`,
+      `Final Rot Score: ${scoreStr}`,
+      "",
+      `Decisions made: ${decisions.length}`
+    ];
+    for (let i = 0; i < decisions.length; i++) {
+      recap.push(`${i + 1}. ${decisions[i].commitment}`);
+    }
+    if (warnings.length > 0) {
+      recap.push("");
+      recap.push("Warnings:");
+      for (const w of warnings) {
+        const d = decisionStore.getById(w.priorDecisionId);
+        recap.push(`- Turn ${w.currentTurn}: ${d ? d.commitment : "unknown"} contradiction (${Math.round(w.confidence * 100)}%)`);
+      }
+    }
+    recap.push("\u2501".repeat(60));
+    const recapText = recap.join("\n");
+    console.log("\n" + recapText + "\n");
+    try {
+      const journalDir = path17.join(os12.homedir(), ".openrot", "journal");
+      if (!fs16.existsSync(journalDir)) {
+        fs16.mkdirSync(journalDir, { recursive: true });
+      }
+      const isoDate = new Date(session.createdAt).toISOString().split("T")[0];
+      const filename = `${isoDate}-${projectName}.md`;
+      const journalPath = path17.join(journalDir, filename);
+      fs16.writeFileSync(journalPath, recapText, "utf-8");
+      console.log(source_default.dim(`Saved to ${journalPath}`));
+    } catch {
+    }
+  } catch (error) {
+    console.error(source_default.red("Recap failed:"), error);
+  }
+}
+
+// src/hooks/analyze.ts
+init_esm_shims();
+var logger3 = getLogger();
+var lastOutputSessionId = null;
+var lastOutputLevel = null;
+async function handleAnalyze(hookInput) {
+  try {
+    const { session_id, transcript_path, cwd } = hookInput;
+    const messages = parseTranscript(transcript_path);
+    if (messages.length === 0) return;
+    const db2 = await getDb();
+    const turn = countTurns(messages);
+    try {
+      const assistantTexts = getAssistantMessages(messages);
+      const lastResponse = assistantTexts[assistantTexts.length - 1];
+      if (lastResponse) {
+        const decisionStore = new DecisionStore(db2, saveToFile);
+        const extractions = await extractDecisions(lastResponse, {
+          mode: "regex",
+          modelClient: null
+        });
+        for (const extraction of extractions) {
+          if (!decisionStore.isDuplicate(session_id, extraction.commitment)) {
+            decisionStore.create(session_id, turn, extraction);
+          }
+        }
+      }
+    } catch {
+    }
+    const score = computeRotScore(db2, session_id, messages);
+    saveRotScore(db2, session_id, score, saveToFile);
+    const output = formatRotOutput(score);
+    if (!output) {
+      return;
+    }
+    if (lastOutputSessionId === session_id && lastOutputLevel === score.level && score.level !== "red") {
+      return;
+    }
+    lastOutputSessionId = session_id;
+    lastOutputLevel = score.level;
+    if (output.stdout) {
+      process.stdout.write(output.stdout);
+    }
+    if (output.stderr) {
+      process.stderr.write(output.stderr + "\n");
+    }
+    logger3.info("Rot score computed", {
+      sessionId: session_id,
+      turn,
+      score: score.combined,
+      level: score.level
+    });
+  } catch (error) {
+    logger3.error("Analyze hook error", { error: String(error) });
+  }
+}
+function readHookInput() {
+  return new Promise((resolve, reject) => {
+    let data = "";
+    const timeout = setTimeout(() => {
+      reject(new Error("Timeout reading stdin"));
+    }, 3e3);
+    process.stdin.setEncoding("utf-8");
+    process.stdin.on("data", (chunk) => {
+      data += chunk;
+    });
+    process.stdin.on("end", () => {
+      clearTimeout(timeout);
+      try {
+        resolve(JSON.parse(data));
+      } catch {
+        reject(new Error("Invalid JSON on stdin"));
+      }
+    });
+    process.stdin.on("error", (err) => {
+      clearTimeout(timeout);
+      reject(err);
+    });
+    process.stdin.resume();
+  });
+}
+
+// src/hooks/session-start.ts
+init_esm_shims();
+var logger4 = getLogger();
+async function handleSessionStart(hookInput) {
+  try {
+    const { session_id, cwd } = hookInput;
+    const db2 = await getDb();
+    const sessionStore = new SessionStore(db2, saveToFile);
+    const session = sessionStore.create("claude_code");
+    try {
+      await syncDecisionsToProject(db2, cwd);
+    } catch {
+    }
+    logger4.info("Session started via hook", {
+      sessionId: session.id,
+      hookSessionId: session_id,
+      cwd
+    });
+  } catch (error) {
+    logger4.error("SessionStart hook error", { error: String(error) });
+  }
+}
+
+// src/hooks/pre-compact.ts
+init_esm_shims();
+var logger5 = getLogger();
+async function handlePreCompact(hookInput) {
+  try {
+    const { session_id, transcript_path, cwd } = hookInput;
+    const db2 = await getDb();
+    const messages = parseTranscript(transcript_path);
+    if (messages.length === 0) return;
+    const decisionStore = new DecisionStore(db2, saveToFile);
+    const turn = countTurns(messages);
+    const allTexts = getAssistantMessages(messages);
+    let newDecisions = 0;
+    for (const text of allTexts) {
+      try {
+        const extractions = await extractDecisions(text, {
+          mode: "regex",
+          modelClient: null
+        });
+        for (const extraction of extractions) {
+          if (!decisionStore.isDuplicate(session_id, extraction.commitment)) {
+            decisionStore.create(session_id, turn, extraction);
+            newDecisions++;
+          }
+        }
+      } catch {
+      }
+    }
+    try {
+      const projectName = cwd.split(/[\\/]/).pop() || "unknown";
+      const handoffPrompt = await generateHandoff(db2, session_id, messages, projectName);
+      if (handoffPrompt) {
+        saveHandoff(db2, session_id, cwd, handoffPrompt, saveToFile);
+      }
+    } catch {
+    }
+    process.stderr.write(
+      `\u26A0\uFE0F OpenRot: Pre-compaction snapshot saved (${newDecisions} new decisions). Run 'openrot handoff' to use it.
+`
+    );
+    logger5.info("Pre-compact snapshot saved", {
+      sessionId: session_id,
+      cwd,
+      newDecisions
+    });
+  } catch (error) {
+    logger5.error("PreCompact hook error", { error: String(error) });
+  }
+}
+
 // src/index.ts
 var program = new Command();
-program.name("openrot").description("Catches when AI contradicts decisions you've already made").version("0.1.0");
-program.command("init").description("Set up OpenRot (auto-detects your editor)").action(async () => {
+program.name("openrot").description("Real-time AI session health scoring. Detects when output quality is degrading.").version("2.0.0");
+program.command("analyze").description("Stop hook \u2014 score session health (called by Claude Code)").action(async () => {
+  try {
+    const input = await readHookInput();
+    await handleAnalyze(input);
+  } catch (error) {
+    getLogger().error("analyze failed", { error: String(error) });
+  }
+  process.exit(0);
+});
+program.command("session-start").description("SessionStart hook \u2014 initialize session (called by Claude Code)").action(async () => {
+  try {
+    const input = await readHookInput();
+    await handleSessionStart(input);
+  } catch (error) {
+    getLogger().error("session-start failed", { error: String(error) });
+  }
+  process.exit(0);
+});
+program.command("pre-compact").description("PreCompact hook \u2014 save snapshot before context compaction").action(async () => {
+  try {
+    const input = await readHookInput();
+    await handlePreCompact(input);
+  } catch (error) {
+    getLogger().error("pre-compact failed", { error: String(error) });
+  }
+  process.exit(0);
+});
+program.command("init").description("Set up OpenRot (auto-detects editors, registers hooks)").action(async () => {
   try {
     await runInit();
   } catch (error) {
@@ -5767,19 +7344,59 @@ program.command("init").description("Set up OpenRot (auto-detects your editor)")
     process.exit(1);
   }
 });
-program.command("serve").description("Start the MCP server").action(async () => {
+program.command("handoff").description("Generate fresh start prompt from current/last session").option("--for <editor>", "Save to editor file (claude, cursor, antigravity, copilot)").action(async (options) => {
   try {
-    await startServer();
+    await runHandoff(options);
   } catch (error) {
-    console.error(source_default.red("Error starting server:"), error);
+    console.error(source_default.red("Error:"), error);
     process.exit(1);
   }
 });
-program.command("status").description("See what's been tracked").action(async () => {
+program.command("sync").description("Sync decisions to all editor instruction files").action(async () => {
+  try {
+    await runSync();
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("scan").description("Scan codebase against stored decisions").argument("[path]", "Path to scan (default: current directory)").option("--files", "Read file list from stdin (for pre-commit hook)").action(async (scanPath, options) => {
+  try {
+    await runScan({ path: scanPath, ...options });
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("guard").description("Install/remove pre-commit hook").option("--install", "Install pre-commit hook (default)").option("--remove", "Remove pre-commit hook").action((options) => {
+  try {
+    runGuard(options);
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("recap").description("Generate session summary/journal entry").action(async () => {
+  try {
+    await runRecap();
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("status").description("Show current session health and decisions").action(async () => {
   try {
     await runStatus();
   } catch (error) {
     console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("serve").description("Start the MCP server (for Cursor/VS Code/Antigravity)").action(async () => {
+  try {
+    await startServer();
+  } catch (error) {
+    console.error(source_default.red("Error starting server:"), error);
     process.exit(1);
   }
 });
@@ -5807,7 +7424,7 @@ program.command("model").description("Switch model provider and model").option("
     process.exit(1);
   }
 });
-program.command("inject").description("Inject/remove OpenRot instructions into editor instruction files").option("--remove", "Remove OpenRot instructions instead of injecting").action(async (options) => {
+program.command("inject").description("Inject/remove OpenRot instructions into editor instruction files").option("--remove", "Remove OpenRot instructions").action(async (options) => {
   try {
     await runInject(options);
   } catch (error) {
@@ -5817,21 +7434,21 @@ program.command("inject").description("Inject/remove OpenRot instructions into e
 });
 program.command("reset").description("Clear session data").option("--hard", "Also clear configuration").action(async (options) => {
   try {
-    const db2 = getDatabase();
-    const sessionStore = new SessionStore(db2);
+    const db2 = await getDb();
+    const sessionStore = new SessionStore(db2, saveToFile);
     sessionStore.deleteAll();
     console.log(source_default.green("\u2705 Session data cleared."));
     if (options.hard) {
-      const fs10 = await import("fs");
-      const path12 = await import("path");
-      const os10 = await import("os");
-      const configPath = path12.join(os10.homedir(), ".openrot", "config.json");
-      if (fs10.existsSync(configPath)) {
-        fs10.unlinkSync(configPath);
+      const fs17 = await import("fs");
+      const path18 = await import("path");
+      const os13 = await import("os");
+      const configPath = path18.join(os13.homedir(), ".openrot", "config.json");
+      if (fs17.existsSync(configPath)) {
+        fs17.unlinkSync(configPath);
         console.log(source_default.green("\u2705 Configuration cleared."));
       }
     }
-    closeDatabase();
+    closeDb();
   } catch (error) {
     console.error(source_default.red("Error:"), error);
     process.exit(1);

@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getDatabase } from '../db/index.js';
+import { getDb } from '../db/index.js';
 import { extractWithRegex } from '../extract/regex.js';
 import { isEmbeddingAvailable } from '../extract/embedding.js';
 import { getModelClient, getModelName } from '../models/index.js';
@@ -16,9 +16,9 @@ export async function runTest(): Promise<void> {
 
   // 1. Check database
   try {
-    const db = getDatabase();
+    const db = await getDb();
     // Quick test query
-    db.prepare('SELECT 1').get();
+    db.exec('SELECT 1');
     console.log(chalk.green('✅ Database: OK'));
   } catch (error) {
     console.log(chalk.red(`❌ Database: ${error}`));

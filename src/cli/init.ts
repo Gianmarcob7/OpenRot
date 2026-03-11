@@ -6,13 +6,14 @@ import { execSync } from 'child_process';
 import { loadConfig, saveConfig, detectEnvironment } from '../config/index.js';
 import { DEFAULT_CONFIG } from '../config/defaults.js';
 import { ensureGlobalInstructions } from './inject.js';
+import { syncDecisionsToProject } from '../sync/index.js';
 
 /**
  * openrot init — setup and configure OpenRot.
  * Auto-detects editors and providers, writes config, offers clipboard copy of editor snippets.
  */
 export async function runInit(): Promise<void> {
-  console.log(chalk.bold('\n🔍 OpenRot — Setup\n'));
+  console.log(chalk.bold('\n🔍 OpenRot v2 — Setup\n'));
 
   // Step 1: Auto-detect editors
   console.log(chalk.dim('Detecting editors and providers...'));
@@ -51,6 +52,18 @@ export async function runInit(): Promise<void> {
   if (env.editors.cursor) console.log(chalk.green('  ✅ Cursor'));
   if (env.editors.vscode) console.log(chalk.green('  ✅ VS Code'));
   if (env.editors.antigravity) console.log(chalk.green('  ✅ Google Antigravity'));
+
+  // Step 4b: Register Claude Code hooks
+  if (env.editors.claudeCode) {
+    const hookResult = registerClaudeCodeHooks();
+    if (hookResult === 'registered') {
+      console.log(chalk.green('  ✅ Claude Code — hooks registered (Stop, SessionStart, PreCompact)'));
+    } else if (hookResult === 'exists') {
+      console.log(chalk.blue('  ℹ️  Claude Code — hooks already registered'));
+    } else {
+      console.log(chalk.yellow('  ⚠️  Could not register Claude Code hooks'));
+    }
+  }
   if (!env.editors.claudeCode && !env.editors.cursor && !env.editors.vscode && !env.editors.antigravity) {
     console.log(chalk.dim('  (none detected)'));
   }
@@ -119,11 +132,10 @@ export async function runInit(): Promise<void> {
   console.log(chalk.bold('━'.repeat(45)));
   console.log(chalk.green.bold('🎉 OpenRot is ready!'));
   console.log('');
-  if (detectedEditors.length > 0) {
-    console.log('  Restart your editor(s) for changes to take effect.');
-  }
+  console.log('  Your AI sessions are now monitored automatically.');
+  console.log('  You\'ll only hear from OpenRot when something matters.');
+  console.log('');
   console.log('  Run', chalk.bold('openrot test'), 'to verify everything works.');
-  console.log('  Run', chalk.bold('openrot serve'), 'to start the MCP server.');
   console.log('');
 }
 
@@ -315,12 +327,14 @@ async function showSnippetFallback(editor: EditorInfo): Promise<void> {
 }
 
 /**
- * On Windows, Claude Code can't always resolve npm global binaries from PATH.
- * Use `where.exe openrot` to find the full .cmd path.
- * Falls back to plain "openrot" on non-Windows or if resolution fails.
+ * On Windows, Claude Code hooks run through Git Bash (/usr/bin/bash), not PowerShell.
+ * The Windows .cmd path gets mangled, so we convert it to a unix-style path:
+ *   C:\Users\Foo\AppData\Roaming\npm\openrot.cmd  →  /c/Users/Foo/AppData/Roaming/npm/openrot
+ *
+ * On Mac/Linux, just return "openrot".
  */
 function resolveOpenrotCommand(): string {
-  if (os.platform() !== 'win32') return 'openrot';
+  if (process.platform !== 'win32') return 'openrot';
 
   try {
     const output = execSync('where.exe openrot', { encoding: 'utf-8', timeout: 5000 });
@@ -328,10 +342,105 @@ function resolveOpenrotCommand(): string {
       .split('\n')
       .map((line) => line.trim())
       .find((line) => line.endsWith('.cmd'));
-    if (cmdPath) return cmdPath;
+    if (cmdPath) return toGitBashPath(cmdPath);
   } catch {
     // where.exe failed — fall back
   }
 
   return 'openrot';
+}
+
+/**
+ * Convert a Windows path to a Git Bash unix-style path.
+ *   C:\Users\Foo\AppData\Roaming\npm\openrot.cmd
+ *   → /c/Users/Foo/AppData/Roaming/npm/openrot
+ */
+function toGitBashPath(winPath: string): string {
+  // Strip .cmd extension
+  let p = winPath.replace(/\.cmd$/i, '');
+
+  // Replace backslashes with forward slashes
+  p = p.replace(/\\/g, '/');
+
+  // Replace drive letter  C:/  →  /c/
+  p = p.replace(/^([A-Za-z]):\//, (_match, drive: string) => `/${drive.toLowerCase()}/`);
+
+  return p;
+}
+
+/**
+ * Register OpenRot as Claude Code hooks in ~/.claude/settings.json.
+ * Merges hooks without overwriting existing ones.
+ * Returns: 'registered' | 'exists' | 'error'
+ */
+function registerClaudeCodeHooks(): 'registered' | 'exists' | 'error' {
+  try {
+    const homeDir = os.homedir();
+    const settingsPath = path.join(homeDir, '.claude', 'settings.json');
+    const claudeDir = path.join(homeDir, '.claude');
+
+    // Ensure .claude directory exists
+    if (!fs.existsSync(claudeDir)) {
+      fs.mkdirSync(claudeDir, { recursive: true });
+    }
+
+    const openrotCmd = resolveOpenrotCommand();
+
+    const openrotHooks = {
+      Stop: [
+        {
+          hooks: [
+            { type: 'command', command: `${openrotCmd} analyze`, timeout: 10 },
+          ],
+        },
+      ],
+      SessionStart: [
+        {
+          hooks: [
+            { type: 'command', command: `${openrotCmd} session-start` },
+          ],
+        },
+      ],
+      PreCompact: [
+        {
+          hooks: [
+            { type: 'command', command: `${openrotCmd} pre-compact` },
+          ],
+        },
+      ],
+    };
+
+    // Read existing settings
+    let settings: Record<string, any> = {};
+    if (fs.existsSync(settingsPath)) {
+      try {
+        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf-8'));
+      } catch {
+        // Malformed JSON — start fresh
+      }
+    }
+
+    // Check if OpenRot hooks already registered
+    if (settings.hooks) {
+      const hasOpenrot = JSON.stringify(settings.hooks).includes('openrot');
+      if (hasOpenrot) return 'exists';
+    }
+
+    // Merge hooks — preserve existing hooks, add OpenRot's
+    if (!settings.hooks) {
+      settings.hooks = {};
+    }
+
+    for (const [event, hookEntries] of Object.entries(openrotHooks)) {
+      if (!settings.hooks[event]) {
+        settings.hooks[event] = [];
+      }
+      settings.hooks[event].push(...hookEntries);
+    }
+
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf-8');
+    return 'registered';
+  } catch {
+    return 'error';
+  }
 }

@@ -3,13 +3,13 @@ import { createTestDatabase } from '../../src/db/index.js';
 import { SessionStore } from '../../src/db/sessions.js';
 import { DecisionStore } from '../../src/db/decisions.js';
 import { WarningStore } from '../../src/db/warnings.js';
-import type Database from 'better-sqlite3';
+import type { Database } from 'sql.js';
 
 describe('database CRUD operations', () => {
-  let db: Database.Database;
+  let db: Database;
 
-  beforeEach(() => {
-    db = createTestDatabase();
+  beforeEach(async () => {
+    db = await createTestDatabase();
   });
 
   afterEach(() => {

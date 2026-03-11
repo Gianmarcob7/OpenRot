@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { createTestDatabase } from '../src/db/index.js';
 import { processTurn, resetFirstWarning } from '../src/pipeline.js';
-import type Database from 'better-sqlite3';
+import type { Database } from 'sql.js';
 
 describe('pipeline', () => {
-  let db: Database.Database;
+  let db: Database;
 
-  beforeEach(() => {
-    db = createTestDatabase();
+  beforeEach(async () => {
+    db = await createTestDatabase();
     resetFirstWarning();
   });
 
@@ -17,11 +17,11 @@ describe('pipeline', () => {
 
   it('extracts decisions from a message', async () => {
     // First, create a session
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     const result = await processTurn('test-session', 1, "Let's use Tailwind for styling.", {
       db,
@@ -36,11 +36,11 @@ describe('pipeline', () => {
   });
 
   it('detects a contradiction', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     // Turn 1: establish a decision
     await processTurn('test-session', 1, "Let's use Tailwind for styling.", {
@@ -72,11 +72,11 @@ describe('pipeline', () => {
   });
 
   it('does not fire a warning for consistent usage', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     await processTurn('test-session', 1, "Let's use Tailwind for styling.", {
       db,
@@ -103,11 +103,11 @@ describe('pipeline', () => {
   });
 
   it('includes first-run explanation on the first warning', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     await processTurn('test-session', 1, "Let's use PostgreSQL for the database.", {
       db,
@@ -135,11 +135,11 @@ describe('pipeline', () => {
   });
 
   it('does not include first-run explanation on subsequent warnings', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     await processTurn('test-session', 1, "Let's use PostgreSQL. Use UUIDs for all primary keys.", {
       db,
@@ -183,11 +183,11 @@ describe('pipeline', () => {
   });
 
   it('handles empty messages gracefully', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     const result = await processTurn('test-session', 1, '', {
       db,
@@ -202,11 +202,11 @@ describe('pipeline', () => {
   });
 
   it('does not duplicate decisions across turns', async () => {
-    db.prepare('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)').run(
+    db.run('INSERT INTO sessions (id, created_at, editor) VALUES (?, ?, ?)', [
       'test-session',
       Date.now(),
       'test',
-    );
+    ]);
 
     await processTurn('test-session', 1, "Let's use Tailwind.", {
       db,

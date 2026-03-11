@@ -1,0 +1,59 @@
+﻿
+[1m[46m RUN [49m[22m [36mv3.2.4 [39m[90mC:/Users/Gianmarco/Downloads/OpenRot[39m
+
+node.exe : 
+(node:15996) Warning: 
+Failed to load the ES 
+module: C:\Users\Gianma
+rco\Downloads\postcss.c
+onfig.js. Make sure to 
+set "type": "module" 
+in the nearest 
+package.json file or 
+use the .mjs extension.
+At line:1 char:1
++ & "C:\Program 
+Files\nodejs/node.exe" 
+"C:\Program 
+Files\nodejs/node_mo 
+...
++ ~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~
+~~
+    + CategoryInfo     
+         : 
+NotSpecified: ((no    
+de:15996) Wa....mjs ex 
+   tension.:String) 
+[], R    emoteException
+    + 
+FullyQualifiedErrorI   
+ d : NativeCommandError
+ 
+(Use `node 
+--trace-warnings ...` 
+to show where the 
+warning was created)
+ [32mΓ£ô[39m tests/extract/llm.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32mΓ£ô[39m tests/extract/regex.test.ts [2m([22m[2m21 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+ [32mΓ£ô[39m tests/scoring/repetition.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 3[2mms[22m[39m
+ [32mΓ£ô[39m tests/score/judge.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+ [32mΓ£ô[39m tests/transcript/parser.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+ [32mΓ£ô[39m tests/scoring/saturation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+ [32mΓ£ô[39m tests/score/similarity.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+ [32mΓ£ô[39m tests/handoff/extractor.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+ [32mΓ£ô[39m tests/scan/patterns.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+ [32mΓ£ô[39m tests/hooks/analyze.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 77[2mms[22m[39m
+ [32mΓ£ô[39m tests/scoring/contradictions.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 94[2mms[22m[39m
+ [32mΓ£ô[39m tests/db/crud.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 147[2mms[22m[39m
+ [32mΓ£ô[39m tests/extract/embedding.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 350[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m embedding extraction[2m > [22mreports embedding availability without crashing [33m 348[2mms[22m[39m
+ [32mΓ£ô[39m tests/pipeline.test.ts [2m([22m[2m7 tests[22m[2m)[22m[33m 407[2mms[22m[39m
+   [33m[2mΓ£ô[22m[39m pipeline[2m > [22mextracts decisions from a message [33m 336[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m14 passed[39m[22m[90m (14)[39m
+[2m      Tests [22m [1m[32m132 passed[39m[22m[90m (132)[39m
+[2m   Start at [22m 22:20:47
+[2m   Duration [22m 1.09s[2m (transform 788ms, setup 0ms, collect 2.14s, tests 1.15s, environment 3ms, prepare 2.42s)[22m
+

@@ -1,12 +1,14 @@
-import type Database from 'better-sqlite3';
+import type { Database } from 'sql.js';
 import type { Decision, DecisionRow, ExtractionResult } from '../types.js';
 import { v4 as uuidv4 } from 'uuid';
 
 export class DecisionStore {
-  private db: Database.Database;
+  private db: Database;
+  private save: () => void;
 
-  constructor(db: Database.Database) {
+  constructor(db: Database, save: () => void = () => {}) {
     this.db = db;
+    this.save = save;
   }
 
   create(sessionId: string, turn: number, extraction: ExtractionResult): Decision {
@@ -23,12 +25,10 @@ export class DecisionStore {
       createdAt: Date.now(),
     };
 
-    this.db
-      .prepare(
-        `INSERT INTO decisions (id, session_id, turn, raw_text, commitment, type, confidence, embedding, source, created_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-      .run(
+    this.db.run(
+      `INSERT INTO decisions (id, session_id, turn, raw_text, commitment, type, confidence, embedding, source, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [
         decision.id,
         decision.sessionId,
         decision.turn,
@@ -39,45 +39,50 @@ export class DecisionStore {
         null,
         decision.source,
         decision.createdAt,
-      );
+      ],
+    );
+    this.save();
 
     return decision;
   }
 
   updateEmbedding(id: string, embedding: Float32Array): void {
-    const buffer = Buffer.from(embedding.buffer);
-    this.db.prepare('UPDATE decisions SET embedding = ? WHERE id = ?').run(buffer, id);
+    const buffer = new Uint8Array(embedding.buffer, embedding.byteOffset, embedding.byteLength);
+    this.db.run('UPDATE decisions SET embedding = ? WHERE id = ?', [buffer, id]);
+    this.save();
   }
 
   getById(id: string): Decision | null {
-    const row = this.db.prepare('SELECT * FROM decisions WHERE id = ?').get(id) as
-      | DecisionRow
-      | undefined;
-
-    if (!row) return null;
-    return this.rowToDecision(row);
+    const results = this.db.exec('SELECT * FROM decisions WHERE id = ?', [id]);
+    if (!results.length || !results[0].values.length) return null;
+    return this.rowToDecision(this.mapRow(results[0].columns, results[0].values[0]));
   }
 
   getBySessionId(sessionId: string): Decision[] {
-    const rows = this.db
-      .prepare('SELECT * FROM decisions WHERE session_id = ? ORDER BY turn ASC, created_at ASC')
-      .all(sessionId) as DecisionRow[];
-
-    return rows.map((row) => this.rowToDecision(row));
+    const results = this.db.exec(
+      'SELECT * FROM decisions WHERE session_id = ? ORDER BY turn ASC, created_at ASC',
+      [sessionId],
+    );
+    if (!results.length) return [];
+    return results[0].values.map((row) =>
+      this.rowToDecision(this.mapRow(results[0].columns, row)),
+    );
   }
 
   getWithEmbeddings(sessionId: string): Decision[] {
-    const rows = this.db
-      .prepare(
-        'SELECT * FROM decisions WHERE session_id = ? AND embedding IS NOT NULL ORDER BY turn ASC',
-      )
-      .all(sessionId) as DecisionRow[];
-
-    return rows.map((row) => this.rowToDecision(row));
+    const results = this.db.exec(
+      'SELECT * FROM decisions WHERE session_id = ? AND embedding IS NOT NULL ORDER BY turn ASC',
+      [sessionId],
+    );
+    if (!results.length) return [];
+    return results[0].values.map((row) =>
+      this.rowToDecision(this.mapRow(results[0].columns, row)),
+    );
   }
 
   deleteBySessionId(sessionId: string): void {
-    this.db.prepare('DELETE FROM decisions WHERE session_id = ?').run(sessionId);
+    this.db.run('DELETE FROM decisions WHERE session_id = ?', [sessionId]);
+    this.save();
   }
 
   /** Check if a very similar commitment already exists for this session */
@@ -87,10 +92,46 @@ export class DecisionStore {
     return existing.some((d) => d.commitment.toLowerCase().trim() === normalized);
   }
 
+  /** Get all decisions for a specific project path (across all sessions) */
+  getAllForProject(projectPath: string): Decision[] {
+    const results = this.db.exec(
+      'SELECT * FROM decisions WHERE project_path = ? ORDER BY created_at DESC',
+      [projectPath],
+    );
+    if (!results.length) {
+      // Fall back to all decisions if no project-specific ones exist
+      return this.getAll();
+    }
+    return results[0].values.map((row) =>
+      this.rowToDecision(this.mapRow(results[0].columns, row)),
+    );
+  }
+
+  /** Get all decisions across all sessions */
+  getAll(): Decision[] {
+    const results = this.db.exec(
+      'SELECT * FROM decisions ORDER BY created_at DESC',
+    );
+    if (!results.length) return [];
+    return results[0].values.map((row) =>
+      this.rowToDecision(this.mapRow(results[0].columns, row)),
+    );
+  }
+
+  private mapRow(columns: string[], values: unknown[]): DecisionRow {
+    const row: Record<string, unknown> = {};
+    columns.forEach((col, i) => {
+      row[col] = values[i];
+    });
+    return row as unknown as DecisionRow;
+  }
+
   private rowToDecision(row: DecisionRow): Decision {
     let embedding: Float32Array | null = null;
     if (row.embedding) {
-      const buffer = row.embedding;
+      const buffer = row.embedding instanceof Uint8Array
+        ? row.embedding
+        : new Uint8Array(row.embedding as ArrayBuffer);
       embedding = new Float32Array(
         buffer.buffer,
         buffer.byteOffset,

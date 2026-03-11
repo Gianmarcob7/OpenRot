@@ -1,5 +1,5 @@
 import chalk from 'chalk';
-import { getDatabase } from '../db/index.js';
+import { getDb, saveToFile } from '../db/index.js';
 import { SessionStore } from '../db/sessions.js';
 import { DecisionStore } from '../db/decisions.js';
 import { WarningStore } from '../db/warnings.js';
@@ -29,10 +29,10 @@ export async function runStatus(): Promise<void> {
 
   // Database
   try {
-    const db = getDatabase();
-    const sessionStore = new SessionStore(db);
-    const decisionStore = new DecisionStore(db);
-    const warningStore = new WarningStore(db);
+    const db = await getDb();
+    const sessionStore = new SessionStore(db, saveToFile);
+    const decisionStore = new DecisionStore(db, saveToFile);
+    const warningStore = new WarningStore(db, saveToFile);
 
     const sessions = sessionStore.getAll();
 

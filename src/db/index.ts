@@ -1,9 +1,10 @@
-import Database from 'better-sqlite3';
+import initSqlJs, { type Database } from 'sql.js';
 import path from 'path';
 import os from 'os';
 import fs from 'fs';
 
-let db: Database.Database | null = null;
+let db: Database | null = null;
+let dbFilePath: string | null = null;
 
 const MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS sessions (
@@ -23,6 +24,8 @@ const MIGRATIONS = [
     embedding BLOB,
     source TEXT NOT NULL,
     created_at INTEGER NOT NULL,
+    tool TEXT DEFAULT 'claude_code',
+    project_path TEXT,
     FOREIGN KEY (session_id) REFERENCES sessions(id)
   )`,
   `CREATE TABLE IF NOT EXISTS warnings (
@@ -41,9 +44,29 @@ const MIGRATIONS = [
     key TEXT PRIMARY KEY,
     value TEXT
   )`,
+  `CREATE TABLE IF NOT EXISTS rot_scores (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    turn INTEGER,
+    contradiction_score REAL,
+    repetition_score REAL,
+    saturation_score REAL,
+    combined_score REAL,
+    created_at INTEGER,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+  )`,
+  `CREATE TABLE IF NOT EXISTS handoffs (
+    id TEXT PRIMARY KEY,
+    session_id TEXT,
+    project_path TEXT,
+    prompt TEXT,
+    created_at INTEGER,
+    FOREIGN KEY (session_id) REFERENCES sessions(id)
+  )`,
   `CREATE INDEX IF NOT EXISTS idx_decisions_session ON decisions(session_id)`,
   `CREATE INDEX IF NOT EXISTS idx_warnings_session ON warnings(session_id)`,
   `CREATE INDEX IF NOT EXISTS idx_decisions_type ON decisions(type)`,
+  `CREATE INDEX IF NOT EXISTS idx_rot_scores_session ON rot_scores(session_id)`,
 ];
 
 export function getDbPath(): string {
@@ -54,44 +77,61 @@ export function getDbPath(): string {
   return path.join(openrotDir, 'sessions.db');
 }
 
-export function getDatabase(dbPath?: string): Database.Database {
+export async function getDb(overridePath?: string): Promise<Database> {
   if (db) return db;
 
-  const resolvedPath = dbPath || getDbPath();
+  const resolvedPath = overridePath || getDbPath();
   try {
-    db = new Database(resolvedPath);
-    db.pragma('journal_mode = WAL');
-    db.pragma('foreign_keys = ON');
+    const SQL = await initSqlJs();
+
+    if (fs.existsSync(resolvedPath)) {
+      const fileBuffer = fs.readFileSync(resolvedPath);
+      db = new SQL.Database(fileBuffer);
+    } else {
+      db = new SQL.Database();
+    }
+
+    db.run('PRAGMA journal_mode = WAL');
+    db.run('PRAGMA foreign_keys = ON');
+    dbFilePath = resolvedPath;
     runMigrations(db);
+    saveToFile();
     return db;
   } catch (error) {
     throw new Error(`Failed to open database at ${resolvedPath}: ${error}`);
   }
 }
 
-function runMigrations(database: Database.Database): void {
-  const migrate = database.transaction(() => {
-    for (const migration of MIGRATIONS) {
-      database.exec(migration);
-    }
-  });
-  migrate();
+function runMigrations(database: Database): void {
+  for (const migration of MIGRATIONS) {
+    database.run(migration);
+  }
 }
 
-export function closeDatabase(): void {
+/** Persist the current database state to disk */
+export function saveToFile(): void {
+  if (db && dbFilePath) {
+    const data = db.export();
+    fs.writeFileSync(dbFilePath, Buffer.from(data));
+  }
+}
+
+export function closeDb(): void {
   if (db) {
+    saveToFile();
     db.close();
     db = null;
+    dbFilePath = null;
   }
 }
 
 /** Create a fresh in-memory database for testing */
-export function createTestDatabase(): Database.Database {
-  const testDb = new Database(':memory:');
-  testDb.pragma('journal_mode = WAL');
-  testDb.pragma('foreign_keys = ON');
+export async function createTestDatabase(): Promise<Database> {
+  const SQL = await initSqlJs();
+  const testDb = new SQL.Database();
+  testDb.run('PRAGMA foreign_keys = ON');
   runMigrations(testDb);
   return testDb;
 }
 
-export { Database };
+export type { Database };
