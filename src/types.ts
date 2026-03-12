@@ -251,15 +251,18 @@ export interface TranscriptMessage {
 
 // ── v2: Rot Score Types ─────────────────────────────────────
 
-export type RotLevel = 'green' | 'yellow' | 'red';
+export type RotLevel = 'healthy' | 'degrading' | 'rotted';
 
 export interface RotScore {
-  contradictionScore: number;
-  repetitionScore: number;
+  violationScore: number;
+  circularScore: number;
+  repairLoopScore: number;
+  qualityScore: number;
   saturationScore: number;
   combined: number;
   level: RotLevel;
   turn: number;
+  rotPoint: number | null;
 }
 
 export interface RotScoreRow {
@@ -271,6 +274,58 @@ export interface RotScoreRow {
   saturation_score: number;
   combined_score: number;
   created_at: number;
+}
+
+// ── v2: Detection Signal Types ──────────────────────────────
+
+export interface DetectionSignal {
+  type: 'violation' | 'circular' | 'repair-loop' | 'quality-decline' | 'saturation';
+  turn: number;
+  score: number;
+  description: string;
+  details?: string;
+}
+
+export interface ToolCall {
+  toolName: string;
+  filePath?: string;
+  input?: string;
+  exitCode?: number;
+  error?: string;
+}
+
+export interface ParsedTurn {
+  index: number;
+  type: 'user' | 'assistant';
+  text: string;
+  timestamp?: string;
+  toolCalls: ToolCall[];
+  codeBlocks: number;
+  wordCount: number;
+  hedgingCount: number;
+}
+
+export interface DetectionResult {
+  score: RotScore;
+  signals: DetectionSignal[];
+  turns: ParsedTurn[];
+  sessionDuration: string;
+  totalTurns: number;
+}
+
+// ── v2: Session State (persisted between hook calls) ────────
+
+export interface SessionState {
+  sessionId: string;
+  startedAt: number;
+  lastTurn: number;
+  decisions: Array<{ turn: number; commitment: string }>;
+  fileReadCounts: Record<string, number[]>;
+  fileEditCounts: Record<string, number[]>;
+  consecutiveErrors: number;
+  errorPatterns: Array<{ turn: number; error: string }>;
+  turnScores: Array<{ turn: number; score: number }>;
+  rotPoint: number | null;
 }
 
 // ── v2: Handoff Types ───────────────────────────────────────

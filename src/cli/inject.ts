@@ -7,11 +7,12 @@ const MARKER_START = '<!-- openrot-start -->';
 const MARKER_END = '<!-- openrot-end -->';
 
 const INSTRUCTIONS_BLOCK = `${MARKER_START}
-## OpenRot — Active
-Call openrot_new_session at the start of every conversation.
-Call openrot_check after every response, passing your full response
-as the message. If hasWarning is true, show the warning to the user
-before continuing.
+## OpenRot — Session Health Monitor
+OpenRot is monitoring this session. If you find yourself repeating
+approaches, re-reading files you already read, or making errors you
+already fixed, call openrot_check to assess session health. If it
+indicates degradation, call openrot_fix to generate a fresh start
+prompt that preserves all decisions and progress.
 ${MARKER_END}`;
 
 interface InstructionTarget {

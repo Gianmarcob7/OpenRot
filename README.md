@@ -1,166 +1,177 @@
-<p align="center">
-<img src="assets/openrotbanner.png](https://github.com/Gianmarcob7/OpenRot/blob/main/assests/openrotbanner.png" width="50%">
-</p>
+# OpenRot
 
-<h1 align="center">OpenRot</h1>
+**A linter for your AI context window.**
 
-<p align="center">
-<b>Your AI coding session is rotting. OpenRot tells you before you waste hours.</b>
-</p>
+Your AI coding session silently degrades. The AI starts repeating itself, contradicting earlier decisions, and generating increasingly broken code. You don't notice until you've wasted an hour debugging garbage output.
 
-<p align="center">
-Real-time session health scoring. Cross-platform decision tracking. One-command fresh starts with zero context lost.
-</p>
+OpenRot tells you the moment quality drops — and gives you one command to fix it.
 
-<p align="center">
-<img src="https://img.shields.io/badge/AI-session%20monitor-red?style=for-the-badge">
-<img src="https://img.shields.io/badge/CLI-tool-blue?style=for-the-badge">
-</p>
+```
+🔴 OpenRot: Session rotted (67%) — quality dropped at turn 31. Run: openrot fix
+```
 
----
-
-# Install
+## Install
 
 ```bash
 npm install -g openrot
 openrot init
 ```
 
-That's it. OpenRot monitors your sessions automatically via Claude Code hooks. You'll only hear from it when something matters.
+Zero native modules. Works on any machine with Node.js 18+.
 
----
+## Quick start
 
-# How it works
-
-1. You code with Claude Code, Cursor, or any AI tool  
-2. OpenRot silently tracks every decision and scores every response  
-3. When quality degrades, you see:
-
-```
-🔴 Session health 73% — run 'openrot handoff'
-```
-
-4. One command generates a perfect fresh start prompt with all context preserved
-
----
-
-# Does it cost money?
-
-No. Everything runs locally by default — regex patterns and local embeddings. Add an API key or Ollama for smarter analysis. Your choice.
-
----
-
-# Does my code leave my machine?
-
-Never. OpenRot reads your session files locally. If you configure an API key, only the specific message being analyzed is sent — never your codebase.
-
----
-
-# Commands
+**See it work immediately** — point it at your Claude Code transcripts:
 
 ```bash
+openrot scan ~/.claude/projects/
+```
+
+```
+┌─────────────────────────────────────────────────┐
+│  OpenRot — Session Analysis                     │
+│  Session: abc12345 (2h 14m, 47 turns)           │
+│  Quality: ██████████░░░░░░░░░░ 38% DEGRADING    │
+└─────────────────────────────────────────────────┘
+
+Timeline:
+● ● ● ● ● ● ● ● ● ● ● ● ● ● ●│⚠ ● ● ● ● ● ● ● ●
+Turn 1                          31                 47
+                                └─ rot detected
+
+Signals:
+  ⚠️  Turn 31  Instruction violation
+           Contradicts "use Tailwind" (established at turn 3)
+  ⚠️  Turn 35  Circular pattern
+           Re-read db/schema.ts 4 times without changes
+  🔴 Turn 42  Repair loop
+           Same TypeError fix attempted 3 times
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+16 turns of degraded output (~45 min wasted)
+Run: openrot fix --session abc12345
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+**One command to start fresh** with all context preserved:
+
+```bash
+openrot fix
+```
+
+```
+✅ Handoff prompt copied to clipboard
+   Paste into a new session to continue with full context.
+```
+
+## How it works
+
+OpenRot detects five signals of context degradation:
+
+| Signal | What it detects | Weight |
+|--------|----------------|--------|
+| **Instruction violations** | AI contradicts decisions it followed earlier | 25% |
+| **Circular patterns** | AI re-reads the same files repeatedly without progress | 25% |
+| **Repair loops** | AI attempts the same fix multiple times | 25% |
+| **Quality decline** | Responses get shorter, vaguer, more hedging | 15% |
+| **Context saturation** | Approaching the point where models degrade | 10% |
+
+These signals are combined into a single score:
+
+- **0–20: HEALTHY** — complete silence, no output
+- **21–45: DEGRADING** — one-line warning to stderr
+- **46+: ROTTED** — warning + fix suggestion
+
+## Three ways to use it
+
+### Automatic (Claude Code)
+
+Hooks fire after every AI response. Zero effort.
+
+```bash
+openrot init  # auto-registers hooks
+```
+
+### AI-aware (Cursor, VS Code, Antigravity)
+
+OpenRot runs as an MCP server. The AI calls it when it feels stuck.
+
+```bash
+openrot serve  # start MCP server
+```
+
+### Manual
+
+Point it at any transcript file or directory:
+
+```bash
+openrot scan <path-to-session.jsonl>
+openrot scan ~/.claude/projects/
+```
+
+## Commands
+
+```
+openrot scan [path]       Analyze session transcript(s) for degradation
+openrot fix               Generate fresh start prompt with full context
 openrot init              Set up (auto-detects editors, registers hooks)
-openrot handoff           Generate fresh start prompt from current session
-openrot handoff --for X   Save handoff to editor instruction file
-openrot sync              Sync decisions to all editor instruction files
-openrot scan [path]       Scan codebase against your decisions
-openrot guard --install   Add pre-commit hook to catch violations
-openrot recap             Generate session summary/journal entry
-openrot status            Show current session health and decisions
-openrot model             Switch AI model provider
+openrot status            Show current session health
+openrot serve             Start MCP server (Cursor/VS Code/Antigravity)
+openrot config            Change settings
+openrot model             Switch model provider
 openrot test              Verify everything works
 ```
 
----
+## The fix command
 
-# Works with
+`openrot fix` generates a handoff prompt that:
 
-| Tool | Integration |
-|-----|-------------|
-| Claude Code | via hooks (deepest integration, fully automatic) |
-| Cursor | via instruction file sync + file watching |
-| Google Antigravity | via instruction file sync + file watching |
-| VS Code + Copilot | via instruction file sync + file watching |
-
----
-
-# The Rot Score (0–100)
-
-Three signals, weighted:
-
-| Signal | Weight | What it measures |
-|------|------|------|
-| Decision Contradictions | 40% | Ratio of contradictions to tracked decisions |
-| Self-Repetition | 30% | Cosine similarity between recent responses |
-| Context Saturation | 30% | Estimated token usage + hedging + shrinking |
-
-🟢 0–30 — Session healthy  
-🟡 31–60 — Quality degrading  
-🔴 61–100 — Output unreliable
-
----
-
-# Fresh Start Handoff
-
-When the rot score fires, one command preserves everything:
-
-```bash
-openrot handoff
-```
-
-Generates a structured prompt with all decisions, completed work, in-progress tasks, and unresolved issues. Paste into a fresh session and pick up exactly where you left off.
+1. Identifies the **rot point** — the exact turn where quality started degrading
+2. Extracts all decisions and progress from **before** the rot point
+3. Marks work done **after** the rot point as needing re-verification
+4. Lists patterns to **avoid** (things that caused problems)
 
 ```
-openrot handoff --for claude
+Continuing a previous session on my-project.
+The prior session degraded after turn 31.
+Below is the verified context from before degradation.
+
+DECISIONS MADE:
+- use React + TypeScript with Vite
+- use Tailwind CSS only — no inline styles
+- use PostgreSQL with UUID primary keys
+- use Express backend with Prisma ORM
+
+COMPLETED (verified before degradation):
+- Project scaffolding (client/ + server/)
+- Database schema with all tables
+- Auth endpoints (register, login, logout)
+
+IN PROGRESS (may need re-verification):
+- Recipe card component (started but rot detected during this work)
+
+AVOID (these caused issues in the prior session):
+- Do not use inline styles — this violated the Tailwind decision
+- Do not re-read schema.ts repeatedly — the schema is stable
+
+Continue from the recipe card component.
 ```
 
-→ Saves to CLAUDE.md
+## Does it cost money?
 
-```
-openrot handoff --for cursor
-```
+No. Everything runs locally. No API keys required for core functionality.
 
-→ Saves to .cursorrules
+## Does my code leave my machine?
 
-```
-openrot handoff --for antigravity
-```
+Never. OpenRot reads session files locally and never sends data anywhere.
 
-→ Saves to AGENT.md
+## Why this exists
 
----
+Research shows AI coding sessions degrade silently:
 
-# Codebase Scanning
+- **EMNLP 2025**: LLM performance degrades as input length increases, even with perfect retrieval
+- **Stanford "Lost in the Middle"**: 30–47% performance drops for mid-context information
+- **LoCoBench-Agent**: Best LLMs achieve barely 37% memory retention in extended sessions
+- **Developer surveys**: Only 29% trust AI code accuracy (down from 40%)
 
-Scan your actual source files against stored decisions:
-
-```bash
-openrot scan
-```
-
-Detects violations like inline styles when you committed to Tailwind, SERIAL primary keys when you chose UUIDs, or yarn.lock when you said npm only.
-
----
-
-# Pre-Commit Guard
-
-```bash
-openrot guard --install
-```
-
-Blocks commits that violate your decisions. Bypass with
-
-```bash
-git commit --no-verify
-```
-
----
-
-# Why OpenRot?
-
-No AI coding tool monitors your session quality across tools. Anthropic won't build something that watches your Cursor sessions. Cursor won't track decisions you made in Claude Code. OpenRot is the independent layer that works everywhere.
-
----
-
-# License
-MIT
+OpenRot catches this degradation before you waste hours on bad output.

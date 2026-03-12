@@ -145,8 +145,8 @@ var require_windows = __commonJS({
     init_esm_shims();
     module.exports = isexe;
     isexe.sync = sync;
-    var fs17 = __require("fs");
-    function checkPathExt(path18, options) {
+    var fs16 = __require("fs");
+    function checkPathExt(path16, options) {
       var pathext = options.pathExt !== void 0 ? options.pathExt : process.env.PATHEXT;
       if (!pathext) {
         return true;
@@ -157,25 +157,25 @@ var require_windows = __commonJS({
       }
       for (var i = 0; i < pathext.length; i++) {
         var p = pathext[i].toLowerCase();
-        if (p && path18.substr(-p.length).toLowerCase() === p) {
+        if (p && path16.substr(-p.length).toLowerCase() === p) {
           return true;
         }
       }
       return false;
     }
-    function checkStat(stat, path18, options) {
+    function checkStat(stat, path16, options) {
       if (!stat.isSymbolicLink() && !stat.isFile()) {
         return false;
       }
-      return checkPathExt(path18, options);
+      return checkPathExt(path16, options);
     }
-    function isexe(path18, options, cb) {
-      fs17.stat(path18, function(er, stat) {
-        cb(er, er ? false : checkStat(stat, path18, options));
+    function isexe(path16, options, cb) {
+      fs16.stat(path16, function(er, stat) {
+        cb(er, er ? false : checkStat(stat, path16, options));
       });
     }
-    function sync(path18, options) {
-      return checkStat(fs17.statSync(path18), path18, options);
+    function sync(path16, options) {
+      return checkStat(fs16.statSync(path16), path16, options);
     }
   }
 });
@@ -187,14 +187,14 @@ var require_mode = __commonJS({
     init_esm_shims();
     module.exports = isexe;
     isexe.sync = sync;
-    var fs17 = __require("fs");
-    function isexe(path18, options, cb) {
-      fs17.stat(path18, function(er, stat) {
+    var fs16 = __require("fs");
+    function isexe(path16, options, cb) {
+      fs16.stat(path16, function(er, stat) {
         cb(er, er ? false : checkStat(stat, options));
       });
     }
-    function sync(path18, options) {
-      return checkStat(fs17.statSync(path18), options);
+    function sync(path16, options) {
+      return checkStat(fs16.statSync(path16), options);
     }
     function checkStat(stat, options) {
       return stat.isFile() && checkMode(stat, options);
@@ -220,7 +220,7 @@ var require_isexe = __commonJS({
   "node_modules/isexe/index.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var fs17 = __require("fs");
+    var fs16 = __require("fs");
     var core;
     if (process.platform === "win32" || global.TESTING_WINDOWS) {
       core = require_windows();
@@ -229,7 +229,7 @@ var require_isexe = __commonJS({
     }
     module.exports = isexe;
     isexe.sync = sync;
-    function isexe(path18, options, cb) {
+    function isexe(path16, options, cb) {
       if (typeof options === "function") {
         cb = options;
         options = {};
@@ -239,7 +239,7 @@ var require_isexe = __commonJS({
           throw new TypeError("callback not provided");
         }
         return new Promise(function(resolve, reject) {
-          isexe(path18, options || {}, function(er, is) {
+          isexe(path16, options || {}, function(er, is) {
             if (er) {
               reject(er);
             } else {
@@ -248,7 +248,7 @@ var require_isexe = __commonJS({
           });
         });
       }
-      core(path18, options || {}, function(er, is) {
+      core(path16, options || {}, function(er, is) {
         if (er) {
           if (er.code === "EACCES" || options && options.ignoreErrors) {
             er = null;
@@ -258,9 +258,9 @@ var require_isexe = __commonJS({
         cb(er, is);
       });
     }
-    function sync(path18, options) {
+    function sync(path16, options) {
       try {
-        return core.sync(path18, options || {});
+        return core.sync(path16, options || {});
       } catch (er) {
         if (options && options.ignoreErrors || er.code === "EACCES") {
           return false;
@@ -278,7 +278,7 @@ var require_which = __commonJS({
     "use strict";
     init_esm_shims();
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
-    var path18 = __require("path");
+    var path16 = __require("path");
     var COLON = isWindows ? ";" : ":";
     var isexe = require_isexe();
     var getNotFoundError = (cmd) => Object.assign(new Error(`not found: ${cmd}`), { code: "ENOENT" });
@@ -316,7 +316,7 @@ var require_which = __commonJS({
           return opt.all && found.length ? resolve(found) : reject(getNotFoundError(cmd));
         const ppRaw = pathEnv[i];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path18.join(pathPart, cmd);
+        const pCmd = path16.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         resolve(subStep(p, i, 0));
       });
@@ -343,7 +343,7 @@ var require_which = __commonJS({
       for (let i = 0; i < pathEnv.length; i++) {
         const ppRaw = pathEnv[i];
         const pathPart = /^".*"$/.test(ppRaw) ? ppRaw.slice(1, -1) : ppRaw;
-        const pCmd = path18.join(pathPart, cmd);
+        const pCmd = path16.join(pathPart, cmd);
         const p = !pathPart && /^\.[\\\/]/.test(cmd) ? cmd.slice(0, 2) + pCmd : pCmd;
         for (let j = 0; j < pathExt.length; j++) {
           const cur = p + pathExt[j];
@@ -393,7 +393,7 @@ var require_resolveCommand = __commonJS({
   "node_modules/cross-spawn/lib/util/resolveCommand.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var path18 = __require("path");
+    var path16 = __require("path");
     var which = require_which();
     var getPathKey = require_path_key();
     function resolveCommandAttempt(parsed, withoutPathExt) {
@@ -411,7 +411,7 @@ var require_resolveCommand = __commonJS({
       try {
         resolved = which.sync(parsed.command, {
           path: env3[getPathKey({ env: env3 })],
-          pathExt: withoutPathExt ? path18.delimiter : void 0
+          pathExt: withoutPathExt ? path16.delimiter : void 0
         });
       } catch (e) {
       } finally {
@@ -420,7 +420,7 @@ var require_resolveCommand = __commonJS({
         }
       }
       if (resolved) {
-        resolved = path18.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
+        resolved = path16.resolve(hasCustomCwd ? parsed.options.cwd : "", resolved);
       }
       return resolved;
     }
@@ -477,8 +477,8 @@ var require_shebang_command = __commonJS({
       if (!match) {
         return null;
       }
-      const [path18, argument] = match[0].replace(/#! ?/, "").split(" ");
-      const binary = path18.split("/").pop();
+      const [path16, argument] = match[0].replace(/#! ?/, "").split(" ");
+      const binary = path16.split("/").pop();
       if (binary === "env") {
         return argument;
       }
@@ -492,16 +492,16 @@ var require_readShebang = __commonJS({
   "node_modules/cross-spawn/lib/util/readShebang.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var fs17 = __require("fs");
+    var fs16 = __require("fs");
     var shebangCommand = require_shebang_command();
     function readShebang(command) {
       const size = 150;
       const buffer = Buffer.alloc(size);
       let fd;
       try {
-        fd = fs17.openSync(command, "r");
-        fs17.readSync(fd, buffer, 0, size, 0);
-        fs17.closeSync(fd);
+        fd = fs16.openSync(command, "r");
+        fs16.readSync(fd, buffer, 0, size, 0);
+        fs16.closeSync(fd);
       } catch (e) {
       }
       return shebangCommand(buffer.toString());
@@ -515,7 +515,7 @@ var require_parse = __commonJS({
   "node_modules/cross-spawn/lib/parse.js"(exports, module) {
     "use strict";
     init_esm_shims();
-    var path18 = __require("path");
+    var path16 = __require("path");
     var resolveCommand = require_resolveCommand();
     var escape = require_escape();
     var readShebang = require_readShebang();
@@ -540,7 +540,7 @@ var require_parse = __commonJS({
       const needsShell = !isExecutableRegExp.test(commandFile);
       if (parsed.options.forceShell || needsShell) {
         const needsDoubleEscapeMetaChars = isCmdShimRegExp.test(commandFile);
-        parsed.command = path18.normalize(parsed.command);
+        parsed.command = path16.normalize(parsed.command);
         parsed.command = escape.command(parsed.command);
         parsed.args = parsed.args.map((arg) => escape.argument(arg, needsDoubleEscapeMetaChars));
         const shellCommand = [parsed.command].concat(parsed.args).join(" ");
@@ -4831,11 +4831,12 @@ import os6 from "os";
 var MARKER_START = "<!-- openrot-start -->";
 var MARKER_END = "<!-- openrot-end -->";
 var INSTRUCTIONS_BLOCK = `${MARKER_START}
-## OpenRot \u2014 Active
-Call openrot_new_session at the start of every conversation.
-Call openrot_check after every response, passing your full response
-as the message. If hasWarning is true, show the warning to the user
-before continuing.
+## OpenRot \u2014 Session Health Monitor
+OpenRot is monitoring this session. If you find yourself repeating
+approaches, re-reading files you already read, or making errors you
+already fixed, call openrot_check to assess session health. If it
+indicates degradation, call openrot_fix to generate a fresh start
+prompt that preserves all decisions and progress.
 ${MARKER_END}`;
 function getInstructionTargets() {
   const homeDir = os6.homedir();
@@ -4908,31 +4909,6 @@ function injectInstructions(target) {
     return "error";
   }
 }
-function removeInstructions(target) {
-  try {
-    const { filePath } = target;
-    if (!fs5.existsSync(filePath)) {
-      return "not-found";
-    }
-    const content = fs5.readFileSync(filePath, "utf-8");
-    if (!content.includes(MARKER_START)) {
-      return "not-found";
-    }
-    const regex = new RegExp(`\\n?${escapeRegExp(MARKER_START)}[\\s\\S]*?${escapeRegExp(MARKER_END)}\\n?`, "g");
-    const cleaned = content.replace(regex, "\n").replace(/\n{3,}/g, "\n\n").trim();
-    if (cleaned.length === 0) {
-      fs5.unlinkSync(filePath);
-    } else {
-      fs5.writeFileSync(filePath, cleaned + "\n", "utf-8");
-    }
-    return "removed";
-  } catch {
-    return "error";
-  }
-}
-function escapeRegExp(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
 function ensureGlobalInstructions(silent = false) {
   const targets = getInstructionTargets();
   for (const target of targets) {
@@ -4955,35 +4931,6 @@ function ensureGlobalInstructions(silent = false) {
     }
   }
 }
-async function runInject(options) {
-  if (options.remove) {
-    console.log(source_default.bold("\n\u{1F5D1}\uFE0F  OpenRot \u2014 Removing Instructions\n"));
-    const targets = getInstructionTargets();
-    if (targets.length === 0) {
-      console.log(source_default.dim("  No editor instruction files found."));
-      console.log("");
-      return;
-    }
-    for (const target of targets) {
-      const result = removeInstructions(target);
-      switch (result) {
-        case "removed":
-          console.log(source_default.green(`  \u2705 Removed from ${target.label} \u2192 ${source_default.dim(target.filePath)}`));
-          break;
-        case "not-found":
-          console.log(source_default.dim(`  \u2500  No OpenRot block in ${target.label}`));
-          break;
-        case "error":
-          console.log(source_default.yellow(`  \u26A0\uFE0F  Could not update ${target.label}`));
-          break;
-      }
-    }
-  } else {
-    console.log(source_default.bold("\n\u{1F489} OpenRot \u2014 Injecting Instructions\n"));
-    ensureGlobalInstructions(false);
-  }
-  console.log("");
-}
 
 // src/server.ts
 var logger2 = getLogger();
@@ -4991,7 +4938,7 @@ async function startServer() {
   const server = new Server(
     {
       name: "openrot",
-      version: "0.1.0"
+      version: "2.0.0"
     },
     {
       capabilities: {
@@ -5023,13 +4970,13 @@ async function startServer() {
       tools: [
         {
           name: "openrot_check",
-          description: "ALWAYS call this tool after EVERY assistant response without exception. Pass your complete response as the message parameter. This monitors for contradictions with prior decisions. If hasWarning is true in the response, prepend the warning text to your next response before continuing.",
+          description: "You have access to OpenRot, a session health monitor. Call this tool when you notice you're struggling \u2014 repeating the same approach, losing track of earlier decisions, or hitting the same error multiple times. It will tell you if your session context has degraded and suggest whether to continue or start fresh with preserved context.",
           inputSchema: {
             type: "object",
             properties: {
               message: {
                 type: "string",
-                description: "The AI's response to check"
+                description: "Your most recent response text to check for degradation signals"
               },
               turn: {
                 type: "number",
@@ -5044,8 +4991,22 @@ async function startServer() {
           }
         },
         {
+          name: "openrot_fix",
+          description: "Generates a fresh start prompt that preserves all decisions and progress from this session. Call this when openrot_check indicates degradation, or when the developer asks to start fresh.",
+          inputSchema: {
+            type: "object",
+            properties: {
+              sessionId: {
+                type: "string",
+                description: "Session identifier"
+              }
+            },
+            required: ["sessionId"]
+          }
+        },
+        {
           name: "openrot_status",
-          description: "Call this to see all architectural decisions tracked so far in this session. Useful when you want to review what constraints are in place.",
+          description: "Show all architectural decisions tracked so far and current session health score. Call when you want to review constraints or check session quality.",
           inputSchema: {
             type: "object",
             properties: {
@@ -5059,7 +5020,7 @@ async function startServer() {
         },
         {
           name: "openrot_dismiss",
-          description: "Call this to dismiss a specific warning as intentional or incorrect. Use when the user confirms a contradiction is acceptable.",
+          description: "Dismiss a specific warning as intentional. Use when the user confirms a contradiction is acceptable.",
           inputSchema: {
             type: "object",
             properties: {
@@ -5077,13 +5038,13 @@ async function startServer() {
         },
         {
           name: "openrot_new_session",
-          description: "ALWAYS call this tool at the start of every conversation before doing anything else. Initializes contradiction tracking for this session. Required for OpenRot to work.",
+          description: "Start a new OpenRot session. Call at the start of a conversation to initialize context tracking.",
           inputSchema: {
             type: "object",
             properties: {
               editor: {
                 type: "string",
-                description: 'Editor name (e.g., "claude-code", "cursor", "vscode")'
+                description: 'Editor name (e.g., "cursor", "vscode", "antigravity")'
               }
             },
             required: []
@@ -5122,9 +5083,30 @@ async function startServer() {
             content: [
               {
                 type: "text",
-                text: result.decisionsExtracted > 0 ? `Tracked ${result.decisionsExtracted} new decision(s). No contradictions found.` : "No contradictions found."
+                text: result.decisionsExtracted > 0 ? `Tracked ${result.decisionsExtracted} new decision(s). No contradictions found. Session health: OK.` : "No contradictions found. Session health: OK."
               }
             ]
+          };
+        }
+        case "openrot_fix": {
+          const { sessionId } = args;
+          const decisions = decisionStore.getBySessionId(sessionId);
+          if (decisions.length === 0) {
+            return {
+              content: [{ type: "text", text: "No decisions tracked in this session. Nothing to preserve." }]
+            };
+          }
+          const commitments = decisions.map((d) => `- ${d.commitment}`).join("\n");
+          const handoff = `Continuing a previous session.
+
+DECISIONS MADE:
+${commitments}
+
+Continue from the current task.`;
+          return {
+            content: [{ type: "text", text: `Handoff prompt generated:
+
+${handoff}` }]
           };
         }
         case "openrot_status": {
@@ -5175,7 +5157,7 @@ ${decisionList || "  (none)"}`
               {
                 type: "text",
                 text: `OpenRot session started: ${session.id}
-Decisions will be tracked automatically. Call openrot_check after each AI response.`
+OpenRot is now monitoring this session. If you find yourself repeating approaches, re-reading files you already read, or making errors you already fixed, call openrot_check to assess session health.`
               }
             ]
           };
@@ -5469,14 +5451,20 @@ async function showSnippetFallback(editor) {
   await offerClipboardCopy(editor.snippet);
 }
 function resolveOpenrotCommand() {
-  if (os9.platform() !== "win32") return "openrot";
+  if (process.platform !== "win32") return "openrot";
   try {
     const output = execSync("where.exe openrot", { encoding: "utf-8", timeout: 5e3 });
     const cmdPath = output.split("\n").map((line) => line.trim()).find((line) => line.endsWith(".cmd"));
-    if (cmdPath) return cmdPath;
+    if (cmdPath) return toGitBashPath(cmdPath);
   } catch {
   }
   return "openrot";
+}
+function toGitBashPath(winPath) {
+  let p = winPath.replace(/\.cmd$/i, "");
+  p = p.replace(/\\/g, "/");
+  p = p.replace(/^([A-Za-z]):\//, (_match, drive) => `/${drive.toLowerCase()}/`);
+  return p;
 }
 function registerClaudeCodeHooks() {
   try {
@@ -5626,6 +5614,65 @@ async function runConfig() {
 
 // src/cli/status.ts
 init_esm_shims();
+
+// src/state/index.ts
+init_esm_shims();
+import fs10 from "fs";
+import path12 from "path";
+import os10 from "os";
+var STATE_DIR = path12.join(os10.homedir(), ".openrot", "state");
+function ensureStateDir() {
+  if (!fs10.existsSync(STATE_DIR)) {
+    fs10.mkdirSync(STATE_DIR, { recursive: true });
+  }
+}
+function statePath(sessionId) {
+  const safe = sessionId.replace(/[^a-zA-Z0-9_-]/g, "_");
+  return path12.join(STATE_DIR, `${safe}.json`);
+}
+function loadState(sessionId) {
+  try {
+    const filePath = statePath(sessionId);
+    if (fs10.existsSync(filePath)) {
+      const raw = fs10.readFileSync(filePath, "utf-8");
+      return JSON.parse(raw);
+    }
+  } catch {
+  }
+  return createFreshState(sessionId);
+}
+function saveState(state) {
+  try {
+    ensureStateDir();
+    const filePath = statePath(state.sessionId);
+    fs10.writeFileSync(filePath, JSON.stringify(state, null, 2), "utf-8");
+  } catch {
+  }
+}
+function createFreshState(sessionId) {
+  return {
+    sessionId,
+    startedAt: Date.now(),
+    lastTurn: 0,
+    decisions: [],
+    fileReadCounts: {},
+    fileEditCounts: {},
+    consecutiveErrors: 0,
+    errorPatterns: [],
+    turnScores: [],
+    rotPoint: null
+  };
+}
+function listStates() {
+  try {
+    ensureStateDir();
+    return fs10.readdirSync(STATE_DIR).filter((f) => f.endsWith(".json")).map((f) => f.replace(".json", ""));
+  } catch {
+    return [];
+  }
+}
+
+// src/cli/status.ts
 async function runStatus() {
   console.log(source_default.bold("\n\u{1F4CA} OpenRot \u2014 Status\n"));
   try {
@@ -5641,39 +5688,41 @@ async function runStatus() {
   }
   console.log("");
   try {
-    const db2 = await getDb();
-    const sessionStore = new SessionStore(db2, saveToFile);
-    const decisionStore = new DecisionStore(db2, saveToFile);
-    const warningStore = new WarningStore(db2, saveToFile);
-    const sessions = sessionStore.getAll();
-    console.log(source_default.bold("Sessions:"));
-    if (sessions.length === 0) {
-      console.log(source_default.dim("  No sessions found."));
+    const states = listStates();
+    console.log(source_default.bold("Recent Sessions:"));
+    if (states.length === 0) {
+      console.log(source_default.dim("  No active sessions found."));
     } else {
-      const recentSessions = sessions.slice(0, 5);
-      for (const session of recentSessions) {
-        const decisions = decisionStore.getBySessionId(session.id);
-        const warnings = warningStore.getBySessionId(session.id);
-        const age = Math.round((Date.now() - session.createdAt) / 6e4);
-        console.log(`  ${source_default.dim(session.id.slice(0, 8))} \u2014 ${age}min ago`);
-        console.log(`    Decisions: ${decisions.length}, Warnings: ${warnings.length}`);
-        if (decisions.length > 0) {
-          const recent = decisions.slice(-3);
+      const recentStates = states.slice(0, 5);
+      for (const sessionId of recentStates) {
+        const state = loadState(sessionId);
+        const age = Math.round((Date.now() - state.startedAt) / 6e4);
+        const lastScore = state.turnScores[state.turnScores.length - 1];
+        const scoreStr = lastScore ? `score: ${lastScore.score}%` : "no score yet";
+        let icon = "\u2705";
+        if (lastScore && lastScore.score > 45) icon = "\u{1F534}";
+        else if (lastScore && lastScore.score > 20) icon = "\u26A0\uFE0F";
+        console.log(`  ${icon} ${source_default.bold(sessionId.slice(0, 8))} \u2014 ${age}min ago, ${state.lastTurn} turns, ${scoreStr}`);
+        if (state.decisions.length > 0) {
+          const recent = state.decisions.slice(-3);
           for (const d of recent) {
-            console.log(`    ${source_default.dim(`[Turn ${d.turn}]`)} ${d.commitment}`);
+            console.log(source_default.dim(`     [Turn ${d.turn}] ${d.commitment}`));
           }
-          if (decisions.length > 3) {
-            console.log(source_default.dim(`    ... and ${decisions.length - 3} more`));
+          if (state.decisions.length > 3) {
+            console.log(source_default.dim(`     ... and ${state.decisions.length - 3} more`));
           }
         }
+        if (state.rotPoint) {
+          console.log(source_default.red(`     Rot detected at turn ${state.rotPoint}`));
+        }
       }
-      if (sessions.length > 5) {
+      if (states.length > 5) {
         console.log(source_default.dim(`
-  ... and ${sessions.length - 5} more sessions`));
+  ... and ${states.length - 5} more sessions`));
       }
     }
   } catch {
-    console.log(source_default.yellow("  \u26A0\uFE0F  Could not read database"));
+    console.log(source_default.yellow("  \u26A0\uFE0F  Could not read session states"));
   }
   console.log("");
   try {
@@ -5682,7 +5731,8 @@ async function runStatus() {
     if (env3.editors.claudeCode) console.log(source_default.green("  \u2705 Claude Code"));
     if (env3.editors.cursor) console.log(source_default.green("  \u2705 Cursor"));
     if (env3.editors.vscode) console.log(source_default.green("  \u2705 VS Code"));
-    if (!env3.editors.claudeCode && !env3.editors.cursor && !env3.editors.vscode) {
+    if (env3.editors.antigravity) console.log(source_default.green("  \u2705 Google Antigravity"));
+    if (!env3.editors.claudeCode && !env3.editors.cursor && !env3.editors.vscode && !env3.editors.antigravity) {
       console.log(source_default.dim("  (none detected)"));
     }
   } catch {
@@ -5956,16 +6006,19 @@ async function handleCloudProvider(provider, inquirer) {
   };
 }
 
-// src/cli/handoff.ts
+// src/cli/scan.ts
 init_esm_shims();
+import fs13 from "fs";
+import path13 from "path";
+import os11 from "os";
 
 // src/transcript/index.ts
 init_esm_shims();
-import fs10 from "fs";
+import fs11 from "fs";
 function parseTranscript(transcriptPath) {
   try {
-    if (!fs10.existsSync(transcriptPath)) return [];
-    const content = fs10.readFileSync(transcriptPath, "utf-8");
+    if (!fs11.existsSync(transcriptPath)) return [];
+    const content = fs11.readFileSync(transcriptPath, "utf-8");
     return parseTranscriptContent(content);
   } catch {
     return [];
@@ -5994,937 +6047,85 @@ function getMessageText(msg) {
   }
   return "";
 }
-function getLastAssistantResponses(messages, count = 5) {
-  return messages.filter((m) => m.type === "assistant").slice(-count).map(getMessageText).filter((t) => t.length > 0);
-}
 function countTurns(messages) {
   return messages.filter((m) => m.type === "assistant").length;
-}
-function getUserMessages(messages) {
-  return messages.filter((m) => m.type === "user").map(getMessageText).filter((t) => t.length > 0);
 }
 function getAssistantMessages(messages) {
   return messages.filter((m) => m.type === "assistant").map(getMessageText).filter((t) => t.length > 0);
 }
 
-// src/handoff/extractor.ts
+// src/transcript/tail.ts
 init_esm_shims();
-function extractHandoffData(messages, decisions, projectName) {
-  const assistantTexts = getAssistantMessages(messages);
-  const userTexts = getUserMessages(messages);
-  const completed = extractCompleted(assistantTexts);
-  const inProgress = extractInProgress(assistantTexts, userTexts);
-  const unresolved = extractUnresolved(assistantTexts, userTexts);
-  return {
-    projectName,
-    decisions,
-    completed,
-    inProgress,
-    unresolved
-  };
-}
-function extractCompleted(assistantTexts) {
-  const completed = [];
-  const seen = /* @__PURE__ */ new Set();
-  const donePatterns = [
-    /(?:I've|I have|we've|we have)\s+(?:created|built|implemented|added|set up|configured|written|updated|fixed|completed)\s+(.+?)(?:\.|$)/gi,
-    /(?:created|built|implemented|added|set up|configured|updated|fixed)\s+(?:the\s+)?(.+?)(?:\s+(?:successfully|for you|as requested))/gi,
-    /✅\s*(.+)/g,
-    /Done[!.]?\s*(.+)/gi
-  ];
-  for (const text of assistantTexts) {
-    for (const pattern of donePatterns) {
-      pattern.lastIndex = 0;
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        const item = match[1].trim().substring(0, 100);
-        if (item.length > 5 && !seen.has(item.toLowerCase())) {
-          seen.add(item.toLowerCase());
-          completed.push(item);
-        }
-      }
-    }
-  }
-  return completed.slice(0, 20);
-}
-function extractInProgress(assistantTexts, userTexts) {
-  const inProgress = [];
-  const lastAssistant = assistantTexts.slice(-3);
-  const lastUser = userTexts.slice(-3);
-  const progressPatterns = [
-    /(?:I'm|I am|let me|I'll|I will)\s+(?:now\s+)?(?:working on|implementing|building|creating|adding|fixing|updating)\s+(.+?)(?:\.|$)/gi,
-    /(?:next|now)\s+(?:I'll|let's|we'll)\s+(.+?)(?:\.|$)/gi
-  ];
-  for (const text of [...lastAssistant, ...lastUser]) {
-    for (const pattern of progressPatterns) {
-      pattern.lastIndex = 0;
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        const item = match[1].trim().substring(0, 100);
-        if (item.length > 5) {
-          inProgress.push(item);
-        }
-      }
-    }
-  }
-  return inProgress.slice(0, 5);
-}
-function extractUnresolved(assistantTexts, userTexts) {
-  const unresolved = [];
-  const issuePatterns = [
-    /(?:error|bug|issue|problem|fail(?:ure|ed|s)?|broken|doesn't work|not working|TODO)\s*[:\-]?\s*(.+?)(?:\.|$)/gi,
-    /(?:need(?:s)? to|should|must)\s+(?:fix|resolve|address|handle|investigate)\s+(.+?)(?:\.|$)/gi
-  ];
-  const recentTexts = [...assistantTexts.slice(-5), ...userTexts.slice(-5)];
-  for (const text of recentTexts) {
-    for (const pattern of issuePatterns) {
-      pattern.lastIndex = 0;
-      let match;
-      while ((match = pattern.exec(text)) !== null) {
-        const item = match[1].trim().substring(0, 100);
-        if (item.length > 5) {
-          unresolved.push(item);
-        }
-      }
-    }
-  }
-  return unresolved.slice(0, 10);
-}
-
-// src/handoff/formatter.ts
-init_esm_shims();
-function formatHandoff(data, target) {
-  const lines = [
-    "---",
-    `Continuing a previous session on ${data.projectName}.`,
-    ""
-  ];
-  if (data.decisions.length > 0) {
-    lines.push("STACK DECISIONS:");
-    for (const decision of data.decisions) {
-      lines.push(`- ${decision}`);
-    }
-    lines.push("");
-  }
-  if (data.completed.length > 0) {
-    lines.push("COMPLETED THIS SESSION:");
-    for (const item of data.completed) {
-      lines.push(`- ${item}`);
-    }
-    lines.push("");
-  }
-  if (data.inProgress.length > 0) {
-    lines.push("IN PROGRESS:");
-    for (const item of data.inProgress) {
-      lines.push(`- ${item}`);
-    }
-    lines.push("");
-  }
-  if (data.unresolved.length > 0) {
-    lines.push("UNRESOLVED:");
-    for (const item of data.unresolved) {
-      lines.push(`- ${item}`);
-    }
-    lines.push("");
-  }
-  const lastTask = data.inProgress[0] || data.completed[data.completed.length - 1] || "the current task";
-  lines.push(`Continue from ${lastTask}.`);
-  lines.push("---");
-  return lines.join("\n");
-}
-function formatForEditor(handoff, editor) {
-  switch (editor) {
-    case "cursor":
-      return `# Project Context (from OpenRot handoff)
-
-${handoff}`;
-    case "claude":
-      return `# OpenRot Handoff \u2014 Session Context
-
-${handoff}`;
-    case "antigravity":
-      return `# OpenRot Handoff \u2014 Session Context
-
-${handoff}`;
-    case "copilot":
-      return `# Project Context (OpenRot handoff)
-
-${handoff}`;
-    default:
-      return handoff;
-  }
-}
-
-// src/handoff/index.ts
-init_esm_shims();
-
-// src/handoff/templates.ts
-init_esm_shims();
-var EDITOR_FILE_NAMES = {
-  claude: "CLAUDE.md",
-  cursor: ".cursorrules",
-  antigravity: "AGENT.md",
-  copilot: ".github/copilot-instructions.md"
-};
-
-// src/handoff/index.ts
-import { v4 as uuidv44 } from "uuid";
-import path12 from "path";
-import os10 from "os";
-import fs11 from "fs";
-async function generateHandoff(db2, sessionId, messages, projectName) {
-  const decisionStore = new DecisionStore(db2);
-  const decisionRows = decisionStore.getBySessionId(sessionId);
-  const decisions = decisionRows.map((d) => d.commitment);
-  const handoffData = extractHandoffData(messages, decisions, projectName);
-  return formatHandoff(handoffData);
-}
-function saveHandoff(db2, sessionId, projectPath, prompt, saveFn = () => {
-}) {
-  try {
-    db2.run(
-      "INSERT INTO handoffs (id, session_id, project_path, prompt, created_at) VALUES (?, ?, ?, ?, ?)",
-      [uuidv44(), sessionId, projectPath, prompt, Date.now()]
-    );
-    saveFn();
-    const handoffDir = path12.join(os10.homedir(), ".openrot", "handoffs");
-    if (!fs11.existsSync(handoffDir)) {
-      fs11.mkdirSync(handoffDir, { recursive: true });
-    }
-    const date = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-    const projectSlug = projectPath.split(/[\\/]/).pop() || "unknown";
-    const filename = `${date}-${projectSlug}.md`;
-    fs11.writeFileSync(path12.join(handoffDir, filename), prompt, "utf-8");
-  } catch {
-  }
-}
-function saveHandoffForEditor(prompt, editor, projectPath) {
-  try {
-    const formatted = formatForEditor(prompt, editor);
-    const fileName = EDITOR_FILE_NAMES[editor];
-    if (!fileName) return null;
-    const filePath = path12.join(projectPath, fileName);
-    const dir = path12.dirname(filePath);
-    if (!fs11.existsSync(dir)) {
-      fs11.mkdirSync(dir, { recursive: true });
-    }
-    fs11.writeFileSync(filePath, formatted, "utf-8");
-    return filePath;
-  } catch {
-    return null;
-  }
-}
-
-// src/cli/handoff.ts
-import path13 from "path";
-import os11 from "os";
 import fs12 from "fs";
-async function runHandoff(options) {
+function tailTranscript(transcriptPath, maxLines = 40) {
   try {
-    const db2 = await getDb();
-    const sessionStore = new SessionStore(db2);
-    const decisionStore = new DecisionStore(db2);
-    const sessions = sessionStore.getAll();
-    if (sessions.length === 0) {
-      console.log(source_default.yellow("No sessions found. Start coding with an AI tool first."));
-      return;
+    if (!fs12.existsSync(transcriptPath)) return [];
+    const stat = fs12.statSync(transcriptPath);
+    if (stat.size === 0) return [];
+    if (stat.size < 1e5) {
+      const content = fs12.readFileSync(transcriptPath, "utf-8");
+      return parseLastNLines(content, maxLines);
     }
-    const latestSession = sessions[0];
-    const decisions = decisionStore.getBySessionId(latestSession.id);
-    const commitments = decisions.map((d) => d.commitment);
-    const cwd = process.cwd();
-    const projectName = path13.basename(cwd);
-    let messages = [];
-    const claudeDir = path13.join(os11.homedir(), ".claude", "projects");
-    if (fs12.existsSync(claudeDir)) {
-      try {
-        const projectDirs = fs12.readdirSync(claudeDir);
-        for (const dir of projectDirs) {
-          const sessionDir = path13.join(claudeDir, dir);
-          const files = fs12.readdirSync(sessionDir).filter((f) => f.endsWith(".jsonl"));
-          if (files.length > 0) {
-            const latestFile = files.sort().pop();
-            messages = parseTranscript(path13.join(sessionDir, latestFile));
-            if (messages.length > 0) break;
-          }
-        }
-      } catch {
-      }
-    }
-    const handoffData = extractHandoffData(messages, commitments, projectName);
-    const prompt = formatHandoff(handoffData);
-    saveHandoff(db2, latestSession.id, cwd, prompt, saveToFile);
-    console.log("");
-    console.log(source_default.bold("\u2501".repeat(60)));
-    console.log(prompt);
-    console.log(source_default.bold("\u2501".repeat(60)));
-    console.log("");
+    const chunkSize = Math.min(stat.size, 512e3);
+    const fd = fs12.openSync(transcriptPath, "r");
     try {
-      const { default: clipboardy } = await Promise.resolve().then(() => (init_clipboardy(), clipboardy_exports));
-      await clipboardy.write(prompt);
-      console.log(source_default.green("\u2705 Copied to clipboard"));
-    } catch {
-      console.log(source_default.dim("(Could not copy to clipboard)"));
-    }
-    if (options.for) {
-      const editor = options.for.toLowerCase();
-      const fileName = EDITOR_FILE_NAMES[editor];
-      if (fileName) {
-        const formatted = formatForEditor(prompt, editor);
-        const filePath = saveHandoffForEditor(prompt, editor, cwd);
-        if (filePath) {
-          console.log(source_default.green(`\u2705 Saved to ${source_default.dim(filePath)}`));
-        } else {
-          console.log(source_default.yellow(`\u26A0\uFE0F  Could not save for ${editor}`));
-        }
-      } else {
-        console.log(source_default.yellow(`Unknown editor: ${options.for}. Use: claude, cursor, antigravity, copilot`));
-      }
-    }
-    const date = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
-    const handoffPath = path13.join(os11.homedir(), ".openrot", "handoffs", `${date}-${projectName}.md`);
-    console.log(source_default.dim(`Saved to ${handoffPath}`));
-    console.log("");
-  } catch (error) {
-    console.error(source_default.red("Handoff failed:"), error);
-  }
-}
-
-// src/cli/scan.ts
-init_esm_shims();
-
-// src/scan/index.ts
-init_esm_shims();
-
-// src/scan/patterns.ts
-init_esm_shims();
-var SCAN_PATTERNS = [
-  // Styling decisions
-  {
-    decisionKeywords: ["tailwind", "tailwindcss"],
-    fileGlobs: ["**/*.tsx", "**/*.jsx", "**/*.ts", "**/*.js", "**/*.vue", "**/*.svelte"],
-    violationPatterns: [
-      /style\s*=\s*\{\{/g,
-      /style\s*=\s*"/g,
-      /styled-components/g,
-      /import.*\.module\.css/g,
-      /import.*\.module\.scss/g,
-      /from\s+['"]styled-components['"]/g,
-      /from\s+['"]@emotion/g
-    ],
-    description: "inline/alternative CSS instead of Tailwind"
-  },
-  {
-    decisionKeywords: ["inline style", "inline css"],
-    fileGlobs: ["**/*.tsx", "**/*.jsx"],
-    violationPatterns: [
-      /className\s*=/g,
-      /from\s+['"]tailwindcss['"]/g
-    ],
-    description: "Tailwind/className instead of inline styles"
-  },
-  {
-    decisionKeywords: ["styled-components"],
-    fileGlobs: ["**/*.tsx", "**/*.jsx", "**/*.ts"],
-    violationPatterns: [
-      /style\s*=\s*\{\{/g,
-      /className\s*=/g
-    ],
-    description: "non-styled-components styling"
-  },
-  // Database decisions
-  {
-    decisionKeywords: ["postgres", "postgresql"],
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
-    violationPatterns: [
-      /sqlite/gi,
-      /mysql/gi,
-      /mongodb/gi,
-      /from\s+['"]better-sqlite3['"]/g,
-      /from\s+['"]mysql2?['"]/g,
-      /from\s+['"]mongoose['"]/g
-    ],
-    description: "non-PostgreSQL database"
-  },
-  {
-    decisionKeywords: ["sqlite"],
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
-    violationPatterns: [
-      /postgres/gi,
-      /mysql/gi,
-      /mongodb/gi
-    ],
-    description: "non-SQLite database"
-  },
-  // ID decisions
-  {
-    decisionKeywords: ["uuid", "uuids"],
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
-    violationPatterns: [
-      /SERIAL\s+PRIMARY\s+KEY/gi,
-      /AUTO_INCREMENT/gi,
-      /autoIncrement/g,
-      /INTEGER\s+PRIMARY\s+KEY\s+AUTOINCREMENT/gi
-    ],
-    description: "auto-increment IDs instead of UUIDs"
-  },
-  {
-    decisionKeywords: ["serial", "auto_increment", "autoincrement"],
-    fileGlobs: ["**/*.ts", "**/*.js", "**/*.sql"],
-    violationPatterns: [
-      /uuid/gi,
-      /from\s+['"]uuid['"]/g,
-      /crypto\.randomUUID/g
-    ],
-    description: "UUIDs instead of auto-increment IDs"
-  },
-  // Package manager decisions
-  {
-    decisionKeywords: ["npm only", "only npm", "use npm"],
-    fileGlobs: ["**/yarn.lock", "**/pnpm-lock.yaml", "**/.yarnrc*", "**/.pnpmfile*"],
-    violationPatterns: [/.+/g],
-    // Any content in these files is a violation
-    description: "non-npm package manager files"
-  },
-  {
-    decisionKeywords: ["yarn only", "only yarn", "use yarn"],
-    fileGlobs: ["**/package-lock.json", "**/pnpm-lock.yaml"],
-    violationPatterns: [/.+/g],
-    description: "non-yarn package manager files"
-  },
-  // Framework decisions
-  {
-    decisionKeywords: ["react query", "tanstack query"],
-    fileGlobs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
-    violationPatterns: [
-      /from\s+['"]swr['"]/g,
-      /import.*useSWR/g
-    ],
-    description: "SWR instead of React Query"
-  },
-  {
-    decisionKeywords: ["swr"],
-    fileGlobs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"],
-    violationPatterns: [
-      /from\s+['"]@tanstack\/react-query['"]/g,
-      /from\s+['"]react-query['"]/g,
-      /useQuery/g
-    ],
-    description: "React Query instead of SWR"
-  },
-  {
-    decisionKeywords: ["express"],
-    fileGlobs: ["**/*.ts", "**/*.js"],
-    violationPatterns: [
-      /from\s+['"]fastify['"]/g,
-      /from\s+['"]koa['"]/g,
-      /from\s+['"]hapi['"]/g
-    ],
-    description: "non-Express server framework"
-  },
-  // Auth decisions
-  {
-    decisionKeywords: ["jwt", "httponly cookies", "httponly cookie"],
-    fileGlobs: ["**/*.ts", "**/*.js"],
-    violationPatterns: [
-      /localStorage\.setItem.*token/gi,
-      /sessionStorage\.setItem.*token/gi
-    ],
-    description: "token stored in localStorage instead of httpOnly cookie"
-  },
-  {
-    decisionKeywords: ["no auth", "no authentication", "avoid auth"],
-    fileGlobs: ["**/*.ts", "**/*.js"],
-    violationPatterns: [
-      /from\s+['"]passport['"]/g,
-      /from\s+['"]jsonwebtoken['"]/g,
-      /jwt\.verify/g,
-      /bcrypt/g,
-      /auth\s*middleware/gi
-    ],
-    description: "authentication code despite being deferred"
-  }
-];
-function findPatternsForDecision(commitment) {
-  const lowerCommitment = commitment.toLowerCase();
-  return SCAN_PATTERNS.filter(
-    (pattern) => pattern.decisionKeywords.some((keyword) => lowerCommitment.includes(keyword))
-  );
-}
-
-// src/scan/index.ts
-import fs13 from "fs";
-import path14 from "path";
-var SKIP_DIRS = /* @__PURE__ */ new Set([
-  "node_modules",
-  ".git",
-  ".next",
-  ".nuxt",
-  "dist",
-  "build",
-  "out",
-  ".cache",
-  ".turbo",
-  "coverage",
-  "__pycache__",
-  ".openrot",
-  ".vscode",
-  ".idea"
-]);
-var SCANNABLE_EXTENSIONS = /* @__PURE__ */ new Set([
-  ".ts",
-  ".tsx",
-  ".js",
-  ".jsx",
-  ".vue",
-  ".svelte",
-  ".sql",
-  ".json",
-  ".yaml",
-  ".yml",
-  ".toml",
-  ".lock"
-]);
-function scanDirectory(dirPath, decisions) {
-  const violations = [];
-  for (const decision of decisions) {
-    const patterns = findPatternsForDecision(decision.commitment);
-    if (patterns.length === 0) continue;
-    for (const pattern of patterns) {
-      const files = walkFiles(dirPath);
-      for (const filePath of files) {
-        const fileViolations = scanFile(filePath, decision.commitment, pattern.violationPatterns, pattern.description);
-        violations.push(...fileViolations);
-      }
-    }
-  }
-  return deduplicateViolations(violations);
-}
-function scanFiles(filePaths, decisions) {
-  const violations = [];
-  for (const filePath of filePaths) {
-    if (!fs13.existsSync(filePath)) continue;
-    for (const decision of decisions) {
-      const patterns = findPatternsForDecision(decision.commitment);
-      for (const pattern of patterns) {
-        const fileViolations = scanFile(filePath, decision.commitment, pattern.violationPatterns, pattern.description);
-        violations.push(...fileViolations);
-      }
-    }
-  }
-  return deduplicateViolations(violations);
-}
-function scanFile(filePath, decision, violationPatterns, _description) {
-  const violations = [];
-  try {
-    const basename = path14.basename(filePath);
-    if (basename === "yarn.lock" || basename === "pnpm-lock.yaml" || basename === "package-lock.json") {
-      violations.push({
-        filePath,
-        line: 0,
-        decision,
-        found: `${basename} file exists`
-      });
-      return violations;
-    }
-    const content = fs13.readFileSync(filePath, "utf-8");
-    const lines = content.split("\n");
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
-      for (const pattern of violationPatterns) {
-        pattern.lastIndex = 0;
-        const match = pattern.exec(line);
-        if (match) {
-          violations.push({
-            filePath,
-            line: i + 1,
-            decision,
-            found: match[0].trim().substring(0, 80)
-          });
-          break;
-        }
-      }
+      const buffer = Buffer.alloc(chunkSize);
+      const startPos = Math.max(0, stat.size - chunkSize);
+      fs12.readSync(fd, buffer, 0, chunkSize, startPos);
+      const content = buffer.toString("utf-8");
+      return parseLastNLines(content, maxLines);
+    } finally {
+      fs12.closeSync(fd);
     }
   } catch {
+    return [];
   }
-  return violations;
 }
-function walkFiles(dirPath) {
+function parseLastNLines(content, maxLines) {
+  const lines = content.split("\n").filter((l) => l.trim().length > 0);
+  const tail = lines.slice(-maxLines);
+  const messages = [];
+  for (const line of tail) {
+    try {
+      const parsed = JSON.parse(line);
+      if (parsed.type && parsed.message) {
+        messages.push(parsed);
+      }
+    } catch {
+    }
+  }
+  return messages;
+}
+function findTranscripts(dirPath) {
   const results = [];
   try {
-    const entries = fs13.readdirSync(dirPath, { withFileTypes: true });
+    if (!fs12.existsSync(dirPath)) return [];
+    const stat = fs12.statSync(dirPath);
+    if (stat.isFile() && dirPath.endsWith(".jsonl")) {
+      return [dirPath];
+    }
+    if (!stat.isDirectory()) return [];
+    const entries = fs12.readdirSync(dirPath, { withFileTypes: true });
     for (const entry of entries) {
-      if (SKIP_DIRS.has(entry.name)) continue;
-      const fullPath = path14.join(dirPath, entry.name);
-      if (entry.isDirectory()) {
-        results.push(...walkFiles(fullPath));
-      } else if (entry.isFile()) {
-        const ext = path14.extname(entry.name);
-        if (SCANNABLE_EXTENSIONS.has(ext) || entry.name.endsWith(".lock")) {
-          results.push(fullPath);
-        }
+      const fullPath = `${dirPath}/${entry.name}`;
+      if (entry.isFile() && entry.name.endsWith(".jsonl")) {
+        results.push(fullPath);
+      } else if (entry.isDirectory()) {
+        results.push(...findTranscripts(fullPath));
       }
     }
   } catch {
   }
   return results;
 }
-function deduplicateViolations(violations) {
-  const seen = /* @__PURE__ */ new Set();
-  return violations.filter((v) => {
-    const key = `${v.filePath}:${v.line}:${v.decision}`;
-    if (seen.has(key)) return false;
-    seen.add(key);
-    return true;
-  });
-}
 
-// src/cli/scan.ts
-async function runScan(options) {
-  try {
-    const db2 = await getDb();
-    const decisionStore = new DecisionStore(db2);
-    const decisions = decisionStore.getAll();
-    if (decisions.length === 0) {
-      console.log(source_default.dim("No decisions stored. Start a coding session first."));
-      return;
-    }
-    let violations;
-    if (options.files) {
-      const input = await readStdin();
-      const files = input.split("\n").map((f) => f.trim()).filter((f) => f.length > 0);
-      violations = scanFiles(files, decisions);
-    } else {
-      const scanPath = options.path || process.cwd();
-      console.log(source_default.dim(`Scanning ${scanPath} against ${decisions.length} decisions...
-`));
-      violations = scanDirectory(scanPath, decisions);
-    }
-    if (violations.length === 0) {
-      console.log(source_default.green("\u2705 No violations found"));
-      process.exit(0);
-      return;
-    }
-    console.log(source_default.bold("\u2501".repeat(60)));
-    console.log(source_default.bold(`OpenRot Scan \u2014 ${violations.length} violation${violations.length > 1 ? "s" : ""} found
-`));
-    for (const v of violations) {
-      const icon = "\u274C";
-      const loc = v.line > 0 ? `${v.filePath}:${v.line}` : v.filePath;
-      console.log(source_default.red(`${icon} ${loc}`));
-      console.log(source_default.dim(`   Decision: "${v.decision}"`));
-      console.log(source_default.dim(`   Found: ${v.found}`));
-      console.log("");
-    }
-    console.log(source_default.bold("\u2501".repeat(60)));
-    if (options.files) {
-      process.exit(1);
-    }
-  } catch (error) {
-    console.error(source_default.red("Scan failed:"), error);
-  }
-}
-function readStdin() {
-  return new Promise((resolve) => {
-    let data = "";
-    if (process.stdin.isTTY) {
-      resolve("");
-      return;
-    }
-    process.stdin.setEncoding("utf-8");
-    process.stdin.on("data", (chunk) => {
-      data += chunk;
-    });
-    process.stdin.on("end", () => {
-      resolve(data);
-    });
-    process.stdin.resume();
-  });
-}
-
-// src/cli/guard.ts
-init_esm_shims();
-
-// src/scan/guard.ts
-init_esm_shims();
-import fs14 from "fs";
-import path15 from "path";
-var HOOK_SCRIPT_UNIX = `#!/bin/sh
-# OpenRot pre-commit hook \u2014 scans staged files against decisions
-staged_files=$(git diff --cached --name-only --diff-filter=ACM)
-if [ -z "$staged_files" ]; then
-  exit 0
-fi
-
-result=$(echo "$staged_files" | xargs openrot scan --files 2>&1)
-exit_code=$?
-
-if [ $exit_code -ne 0 ]; then
-  echo "$result"
-  echo ""
-  echo "Commit blocked by OpenRot. Fix violations or bypass with: git commit --no-verify"
-  exit 1
-fi
-
-exit 0
-`;
-var HOOK_MARKER = "# OpenRot pre-commit hook";
-function installGuard(projectPath) {
-  try {
-    const gitDir = path15.join(projectPath, ".git");
-    if (!fs14.existsSync(gitDir)) {
-      return { success: false, message: "Not a git repository" };
-    }
-    const hooksDir = path15.join(gitDir, "hooks");
-    if (!fs14.existsSync(hooksDir)) {
-      fs14.mkdirSync(hooksDir, { recursive: true });
-    }
-    const hookPath = path15.join(hooksDir, "pre-commit");
-    if (fs14.existsSync(hookPath)) {
-      const content = fs14.readFileSync(hookPath, "utf-8");
-      if (content.includes(HOOK_MARKER)) {
-        return { success: true, message: "OpenRot hook already installed" };
-      }
-      fs14.appendFileSync(hookPath, "\n\n" + HOOK_SCRIPT_UNIX, "utf-8");
-    } else {
-      fs14.writeFileSync(hookPath, HOOK_SCRIPT_UNIX, { mode: 493 });
-    }
-    try {
-      fs14.chmodSync(hookPath, 493);
-    } catch {
-    }
-    return { success: true, message: `Pre-commit hook installed at ${hookPath}` };
-  } catch (error) {
-    return { success: false, message: `Failed to install hook: ${error}` };
-  }
-}
-function removeGuard(projectPath) {
-  try {
-    const hookPath = path15.join(projectPath, ".git", "hooks", "pre-commit");
-    if (!fs14.existsSync(hookPath)) {
-      return { success: true, message: "No pre-commit hook found" };
-    }
-    const content = fs14.readFileSync(hookPath, "utf-8");
-    if (!content.includes(HOOK_MARKER)) {
-      return { success: true, message: "No OpenRot hook found in pre-commit" };
-    }
-    const cleaned = content.replace(new RegExp(`\\n?${HOOK_MARKER}[\\s\\S]*?exit 0\\n`, "g"), "").trim();
-    if (cleaned.length === 0 || cleaned === "#!/bin/sh") {
-      fs14.unlinkSync(hookPath);
-    } else {
-      fs14.writeFileSync(hookPath, cleaned + "\n", "utf-8");
-    }
-    return { success: true, message: "OpenRot pre-commit hook removed" };
-  } catch (error) {
-    return { success: false, message: `Failed to remove hook: ${error}` };
-  }
-}
-
-// src/cli/guard.ts
-function runGuard(options) {
-  const projectPath = process.cwd();
-  if (options.remove) {
-    const result2 = removeGuard(projectPath);
-    if (result2.success) {
-      console.log(source_default.green(`\u2705 ${result2.message}`));
-    } else {
-      console.log(source_default.red(`\u274C ${result2.message}`));
-    }
-    return;
-  }
-  const result = installGuard(projectPath);
-  if (result.success) {
-    console.log(source_default.green(`\u2705 ${result.message}`));
-    console.log(source_default.dim("   Bypass with: git commit --no-verify"));
-  } else {
-    console.log(source_default.red(`\u274C ${result.message}`));
-  }
-}
-
-// src/cli/sync.ts
-init_esm_shims();
-
-// src/sync/index.ts
-init_esm_shims();
-
-// src/sync/writers.ts
-init_esm_shims();
-import fs15 from "fs";
-import path16 from "path";
-var MARKER_START2 = "<!-- openrot-decisions-start -->";
-var MARKER_END2 = "<!-- openrot-decisions-end -->";
-function writeDecisions(target, decisions) {
-  try {
-    const { filePath } = target;
-    const block = buildDecisionBlock(decisions);
-    const dir = path16.dirname(filePath);
-    if (!fs15.existsSync(dir)) {
-      fs15.mkdirSync(dir, { recursive: true });
-    }
-    if (fs15.existsSync(filePath)) {
-      const content = fs15.readFileSync(filePath, "utf-8");
-      if (content.includes(MARKER_START2)) {
-        const regex = new RegExp(
-          `${escapeRegExp2(MARKER_START2)}[\\s\\S]*?${escapeRegExp2(MARKER_END2)}`,
-          "g"
-        );
-        const updated = content.replace(regex, block);
-        fs15.writeFileSync(filePath, updated, "utf-8");
-        return "updated";
-      }
-      const separator = content.endsWith("\n") ? "\n" : "\n\n";
-      fs15.writeFileSync(filePath, content + separator + block + "\n", "utf-8");
-      return "updated";
-    }
-    fs15.writeFileSync(filePath, block + "\n", "utf-8");
-    return "created";
-  } catch {
-    return "error";
-  }
-}
-function buildDecisionBlock(decisions) {
-  const lines = [
-    MARKER_START2,
-    "## Project Decisions (managed by OpenRot)"
-  ];
-  for (const decision of decisions) {
-    lines.push(`- ${decision}`);
-  }
-  lines.push(MARKER_END2);
-  return lines.join("\n");
-}
-function getProjectWriterTargets(projectPath) {
-  return [
-    { label: "Claude Code", filePath: path16.join(projectPath, "CLAUDE.md") },
-    { label: "Cursor", filePath: path16.join(projectPath, ".cursorrules") },
-    { label: "Copilot", filePath: path16.join(projectPath, ".github", "copilot-instructions.md") },
-    { label: "Antigravity", filePath: path16.join(projectPath, "AGENT.md") }
-  ];
-}
-function escapeRegExp2(s) {
-  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-// src/sync/index.ts
-async function syncDecisionsToProject(db2, projectPath) {
-  const synced = [];
-  const failed = [];
-  try {
-    const decisionStore = new DecisionStore(db2);
-    const decisions = decisionStore.getAllForProject(projectPath);
-    const commitments = decisions.map((d) => d.commitment);
-    if (commitments.length === 0) {
-      return { synced, failed };
-    }
-    const targets = getProjectWriterTargets(projectPath);
-    for (const target of targets) {
-      const result = writeDecisions(target, commitments);
-      if (result === "error") {
-        failed.push(target.label);
-      } else {
-        synced.push(target.label);
-      }
-    }
-  } catch {
-  }
-  return { synced, failed };
-}
-
-// src/cli/sync.ts
-async function runSync() {
-  try {
-    const cwd = process.cwd();
-    const db2 = await getDb();
-    console.log(source_default.bold("\n\u{1F504} OpenRot \u2014 Syncing Decisions\n"));
-    console.log(source_default.dim(`Project: ${cwd}
-`));
-    const { synced, failed } = await syncDecisionsToProject(db2, cwd);
-    if (synced.length === 0 && failed.length === 0) {
-      console.log(source_default.dim("No decisions to sync."));
-    } else {
-      for (const label of synced) {
-        console.log(source_default.green(`  \u2705 ${label}`));
-      }
-      for (const label of failed) {
-        console.log(source_default.yellow(`  \u26A0\uFE0F  ${label} \u2014 failed`));
-      }
-    }
-    console.log("");
-  } catch (error) {
-    console.error(source_default.red("Sync failed:"), error);
-  }
-}
-
-// src/cli/recap.ts
-init_esm_shims();
-
-// src/scoring/index.ts
-init_esm_shims();
-
-// src/scoring/contradictions.ts
-init_esm_shims();
-function scoreContradictions2(db2, sessionId) {
-  try {
-    const decisionStore = new DecisionStore(db2);
-    const warningStore = new WarningStore(db2);
-    const decisions = decisionStore.getBySessionId(sessionId);
-    const warnings = warningStore.getBySessionId(sessionId);
-    if (decisions.length === 0) return 0;
-    const contradictionRate = warnings.length / decisions.length;
-    return Math.min(100, contradictionRate * 100);
-  } catch {
-    return 0;
-  }
-}
-
-// src/scoring/repetition.ts
-init_esm_shims();
-function scoreRepetitionFast(recentResponses) {
-  if (recentResponses.length < 2) return 0;
-  const texts = recentResponses.slice(-5);
-  let totalSimilarity = 0;
-  let pairCount = 0;
-  for (let i = 1; i < texts.length; i++) {
-    const sim = jaccardSimilarity(texts[i - 1], texts[i]);
-    totalSimilarity += sim;
-    pairCount++;
-  }
-  if (pairCount === 0) return 0;
-  return Math.min(100, totalSimilarity / pairCount * 100);
-}
-function jaccardSimilarity(a, b) {
-  const wordsA = new Set(a.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
-  const wordsB = new Set(b.toLowerCase().split(/\s+/).filter((w) => w.length > 3));
-  if (wordsA.size === 0 || wordsB.size === 0) return 0;
-  let intersection = 0;
-  for (const word of wordsA) {
-    if (wordsB.has(word)) intersection++;
-  }
-  const union = wordsA.size + wordsB.size - intersection;
-  return union === 0 ? 0 : intersection / union;
-}
-
-// src/scoring/saturation.ts
+// src/detect/index.ts
 init_esm_shims();
 
 // src/transcript/tokens.ts
 init_esm_shims();
 var CHARS_PER_TOKEN = 4;
 var CONTEXT_LIMIT = 2e5;
-function estimateTokens(text) {
-  return Math.ceil(text.length / CHARS_PER_TOKEN);
-}
-function estimateTotalTokens(messages) {
-  let total = 0;
-  for (const msg of messages) {
-    total += estimateTokens(getMessageText(msg));
-  }
-  return total;
-}
-function estimateSaturation(messages) {
-  const totalTokens = estimateTotalTokens(messages);
-  return Math.min(100, totalTokens / CONTEXT_LIMIT * 100);
-}
 function countHedgingPhrases(text) {
   const hedgingPatterns = [
     /\bi think\b/gi,
@@ -6947,261 +6148,1117 @@ function countHedgingPhrases(text) {
   }
   return count;
 }
-function detectShrinkingResponses(responses) {
-  if (responses.length < 3) return 0;
-  const lengths = responses.map((r) => r.length);
-  const firstHalf = lengths.slice(0, Math.floor(lengths.length / 2));
-  const secondHalf = lengths.slice(Math.floor(lengths.length / 2));
-  const avgFirst = firstHalf.reduce((a, b) => a + b, 0) / firstHalf.length;
-  const avgSecond = secondHalf.reduce((a, b) => a + b, 0) / secondHalf.length;
-  if (avgFirst === 0) return 0;
-  const ratio = avgSecond / avgFirst;
-  if (ratio < 0.5) return 1;
-  if (ratio < 0.75) return 0.5;
-  if (ratio < 0.9) return 0.2;
-  return 0;
-}
 
-// src/scoring/saturation.ts
-function scoreSaturation(messages) {
-  try {
-    if (messages.length === 0) return 0;
-    const baseSaturation = estimateSaturation(messages);
-    const assistantTexts = getAssistantMessages(messages);
-    const recentTexts = assistantTexts.slice(-5);
-    let hedgingPenalty = 0;
-    if (recentTexts.length > 0) {
-      const totalHedging = recentTexts.reduce(
-        (sum, text) => sum + countHedgingPhrases(text),
-        0
-      );
-      const avgHedging = totalHedging / recentTexts.length;
-      hedgingPenalty = Math.min(15, Math.max(0, (avgHedging - 1) * 5));
+// src/detect/violations.ts
+init_esm_shims();
+function detectViolations(turns) {
+  const signals2 = [];
+  const assistantTurns = turns.filter((t) => t.type === "assistant");
+  if (assistantTurns.length < 4) return signals2;
+  const midpoint = Math.floor(assistantTurns.length / 2);
+  const earlyTurns = assistantTurns.slice(0, midpoint);
+  const lateTurns = assistantTurns.slice(midpoint);
+  const decisions = [];
+  for (const turn of earlyTurns) {
+    const extracted = extractWithRegex(turn.text);
+    for (const e of extracted) {
+      decisions.push({ turn: turn.index, commitment: e.commitment, type: e.type });
     }
-    const shrinkingPenalty = detectShrinkingResponses(recentTexts) * 15;
-    return Math.min(100, baseSaturation + hedgingPenalty + shrinkingPenalty);
-  } catch {
-    return 0;
   }
+  if (decisions.length === 0) return signals2;
+  for (const turn of lateTurns) {
+    const lateDecisions = extractWithRegex(turn.text);
+    for (const late of lateDecisions) {
+      for (const early of decisions) {
+        if (isContradiction(early.commitment, late.commitment)) {
+          signals2.push({
+            type: "violation",
+            turn: turn.index,
+            score: 80,
+            description: "Instruction violation",
+            details: `Contradicts "${early.commitment}" (established at turn ${early.turn})`
+          });
+        }
+      }
+    }
+    for (const decision of decisions) {
+      const violation = checkDirectViolation(turn.text, decision.commitment);
+      if (violation) {
+        signals2.push({
+          type: "violation",
+          turn: turn.index,
+          score: 70,
+          description: "Instruction violation",
+          details: `${violation} (decided "${decision.commitment}" at turn ${decision.turn})`
+        });
+      }
+    }
+  }
+  return deduplicateSignals(signals2);
+}
+function isContradiction(early, late) {
+  const earlyLower = early.toLowerCase();
+  const lateLower = late.toLowerCase();
+  const useMatch = earlyLower.match(/^(?:use|only use|stick with)\s+(.+)/);
+  const avoidMatch = lateLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  if (useMatch && avoidMatch) {
+    return hasSignificantOverlap(useMatch[1], avoidMatch[1]);
+  }
+  const earlyAvoid = earlyLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  const lateUse = lateLower.match(/^(?:use|only use|stick with)\s+(.+)/);
+  if (earlyAvoid && lateUse) {
+    return hasSignificantOverlap(earlyAvoid[1], lateUse[1]);
+  }
+  const earlyUse2 = earlyLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  const lateUse2 = lateLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  if (earlyUse2 && lateUse2 && earlyUse2[2] && lateUse2[2]) {
+    if (hasSignificantOverlap(earlyUse2[2], lateUse2[2]) && !hasSignificantOverlap(earlyUse2[1], lateUse2[1])) {
+      return true;
+    }
+  }
+  return false;
+}
+function hasSignificantOverlap(a, b) {
+  const wordsA = new Set(a.toLowerCase().split(/\s+/).filter((w) => w.length > 2));
+  const wordsB = new Set(b.toLowerCase().split(/\s+/).filter((w) => w.length > 2));
+  if (wordsA.size === 0 || wordsB.size === 0) return false;
+  let overlap = 0;
+  for (const w of wordsA) {
+    if (wordsB.has(w)) overlap++;
+  }
+  return overlap / Math.min(wordsA.size, wordsB.size) > 0.5;
+}
+function checkDirectViolation(text, decision) {
+  const lower = text.toLowerCase();
+  const decLower = decision.toLowerCase();
+  if (decLower.includes("tailwind") && /style\s*=\s*\{/.test(text)) {
+    return "Used inline styles";
+  }
+  if (decLower.includes("inline style") && decLower.includes("avoid") && /style\s*=\s*\{/.test(text)) {
+    return "Used inline styles";
+  }
+  if (decLower.includes("typescript") && /require\s*\(/.test(text) && !lower.includes("import")) {
+    return "Used require() instead of import";
+  }
+  return null;
+}
+function deduplicateSignals(signals2) {
+  const seen = /* @__PURE__ */ new Set();
+  return signals2.filter((s) => {
+    const key = `${s.turn}:${s.description}:${s.details}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function scoreViolations(signals2) {
+  const violationSignals = signals2.filter((s) => s.type === "violation");
+  if (violationSignals.length === 0) return 0;
+  return Math.min(100, violationSignals.length * 25);
 }
 
-// src/scoring/index.ts
-import { v4 as uuidv45 } from "uuid";
+// src/detect/circular.ts
+init_esm_shims();
+function detectCircular(turns) {
+  const signals2 = [];
+  const assistantTurns = turns.filter((t) => t.type === "assistant");
+  const fileReads = /* @__PURE__ */ new Map();
+  const fileEdits = /* @__PURE__ */ new Map();
+  for (const turn of assistantTurns) {
+    for (const tool of turn.toolCalls) {
+      if (!tool.filePath) continue;
+      const path16 = normalizePath(tool.filePath);
+      if (isReadTool(tool.toolName)) {
+        const reads = fileReads.get(path16) || [];
+        reads.push(turn.index);
+        fileReads.set(path16, reads);
+      }
+      if (isEditTool(tool.toolName)) {
+        const edits = fileEdits.get(path16) || [];
+        edits.push(turn.index);
+        fileEdits.set(path16, edits);
+      }
+    }
+  }
+  for (const [path16, reads] of fileReads) {
+    const edits = fileEdits.get(path16) || [];
+    if (reads.length >= 3) {
+      const readsWithoutEdits = countReadsWithoutEdits(reads, edits);
+      if (readsWithoutEdits >= 3) {
+        const shortPath = path16.split("/").slice(-2).join("/");
+        signals2.push({
+          type: "circular",
+          turn: reads[reads.length - 1],
+          score: 75,
+          description: "Circular pattern",
+          details: `Re-read ${shortPath} ${reads.length} times without changes`
+        });
+      }
+    }
+  }
+  for (const [path16, edits] of fileEdits) {
+    if (edits.length >= 3) {
+      const clustered = findClusteredEdits(edits, 5);
+      if (clustered >= 3) {
+        const shortPath = path16.split("/").slice(-2).join("/");
+        signals2.push({
+          type: "circular",
+          turn: edits[edits.length - 1],
+          score: 80,
+          description: "Edit-undo-edit cycle",
+          details: `Edited ${shortPath} ${edits.length} times in quick succession`
+        });
+      }
+    }
+  }
+  const textSignals = detectCircularFromText(assistantTurns);
+  signals2.push(...textSignals);
+  return deduplicateSignals2(signals2);
+}
+function isReadTool(name) {
+  const readTools = ["read", "read_file", "readfile", "cat", "view", "Read"];
+  return readTools.some((t) => name.toLowerCase().includes(t.toLowerCase()));
+}
+function isEditTool(name) {
+  const editTools = ["write", "edit", "create", "replace", "patch", "Write", "Edit", "str_replace"];
+  return editTools.some((t) => name.toLowerCase().includes(t.toLowerCase()));
+}
+function normalizePath(p) {
+  return p.replace(/\\/g, "/").replace(/^\.\//, "");
+}
+function countReadsWithoutEdits(reads, edits) {
+  let count = 0;
+  for (let i = 1; i < reads.length; i++) {
+    const hasEditBetween = edits.some((e) => e > reads[i - 1] && e < reads[i]);
+    if (!hasEditBetween) count++;
+  }
+  return count + 1;
+}
+function findClusteredEdits(edits, windowSize) {
+  let maxCluster = 1;
+  for (let i = 0; i < edits.length; i++) {
+    let count = 1;
+    for (let j = i + 1; j < edits.length; j++) {
+      if (edits[j] - edits[i] <= windowSize) count++;
+      else break;
+    }
+    maxCluster = Math.max(maxCluster, count);
+  }
+  return maxCluster;
+}
+function detectCircularFromText(turns) {
+  const signals2 = [];
+  const pathPattern = /(?:reading|read|opening|looking at|checking)\s+[`"']?([^\s`"']+\.\w{1,5})[`"']?/gi;
+  const mentionedFiles = /* @__PURE__ */ new Map();
+  for (const turn of turns) {
+    pathPattern.lastIndex = 0;
+    let match;
+    while ((match = pathPattern.exec(turn.text)) !== null) {
+      const file = match[1];
+      const mentions = mentionedFiles.get(file) || [];
+      mentions.push(turn.index);
+      mentionedFiles.set(file, mentions);
+    }
+  }
+  for (const [file, mentions] of mentionedFiles) {
+    if (mentions.length >= 4) {
+      signals2.push({
+        type: "circular",
+        turn: mentions[mentions.length - 1],
+        score: 60,
+        description: "Circular pattern",
+        details: `Referenced ${file} ${mentions.length} times across turns`
+      });
+    }
+  }
+  return signals2;
+}
+function deduplicateSignals2(signals2) {
+  const seen = /* @__PURE__ */ new Set();
+  return signals2.filter((s) => {
+    const key = `${s.turn}:${s.details}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function scoreCircular(signals2) {
+  const circularSignals = signals2.filter((s) => s.type === "circular");
+  if (circularSignals.length === 0) return 0;
+  return Math.min(100, circularSignals.reduce((sum, s) => sum + s.score, 0) / circularSignals.length + circularSignals.length * 10);
+}
+
+// src/detect/repair-loops.ts
+init_esm_shims();
+function detectRepairLoops(turns) {
+  const signals2 = [];
+  const assistantTurns = turns.filter((t) => t.type === "assistant");
+  signals2.push(...detectConsecutiveFailures(turns));
+  signals2.push(...detectRepeatedErrors(assistantTurns));
+  signals2.push(...detectRetryPatterns(assistantTurns));
+  return deduplicateSignals3(signals2);
+}
+function detectConsecutiveFailures(turns) {
+  const signals2 = [];
+  let consecutiveErrors = 0;
+  let errorPattern = "";
+  let firstErrorTurn = 0;
+  for (const turn of turns) {
+    const hasError = turn.toolCalls.some((t) => t.exitCode !== void 0 && t.exitCode !== 0);
+    const errorText = turn.toolCalls.filter((t) => t.error).map((t) => t.error).join(" ");
+    if (hasError) {
+      if (consecutiveErrors === 0) {
+        firstErrorTurn = turn.index;
+        errorPattern = errorText.substring(0, 100);
+      }
+      consecutiveErrors++;
+      if (consecutiveErrors >= 3) {
+        signals2.push({
+          type: "repair-loop",
+          turn: turn.index,
+          score: 90,
+          description: "Repair loop",
+          details: `${consecutiveErrors} consecutive failed attempts${errorPattern ? ` \u2014 ${errorPattern}` : ""}`
+        });
+      }
+    } else {
+      consecutiveErrors = 0;
+    }
+  }
+  return signals2;
+}
+function detectRepeatedErrors(turns) {
+  const signals2 = [];
+  const errorCounts = /* @__PURE__ */ new Map();
+  const errorPatterns = [
+    /(?:TypeError|ReferenceError|SyntaxError|Error):\s*(.+?)(?:\.|,|\n|$)/gi,
+    /error\[E\d+\]:\s*(.+?)(?:\.|,|\n|$)/gi,
+    /(?:FAIL|FAILED):\s*(.+?)(?:\.|,|\n|$)/gi,
+    /Cannot\s+(.+?)(?:\.|,|\n|$)/gi
+  ];
+  for (const turn of turns) {
+    const text = turn.text;
+    for (const pattern of errorPatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const normalized = normalizeError(match[1]);
+        if (normalized.length < 5) continue;
+        const occurrences = errorCounts.get(normalized) || [];
+        occurrences.push(turn.index);
+        errorCounts.set(normalized, occurrences);
+      }
+    }
+  }
+  for (const [error, turns_] of errorCounts) {
+    if (turns_.length >= 3) {
+      signals2.push({
+        type: "repair-loop",
+        turn: turns_[turns_.length - 1],
+        score: 85,
+        description: "Repair loop",
+        details: `Same error "${error.substring(0, 60)}" appeared ${turns_.length} times`
+      });
+    }
+  }
+  return signals2;
+}
+function detectRetryPatterns(turns) {
+  const signals2 = [];
+  const retryPatterns = [
+    /let me (?:try|fix|correct|address) (?:that|this|it) again/gi,
+    /(?:I apologize|sorry),?\s*(?:let me|I'll) (?:try|fix|correct)/gi,
+    /that (?:didn't work|failed|caused an error)/gi,
+    /(?:still|again) (?:getting|seeing|hitting) (?:the same|that|this) error/gi,
+    /(?:another|different) approach/gi,
+    /(?:going back to|reverting to|trying again with)/gi
+  ];
+  let retryCount = 0;
+  let retryStart = 0;
+  for (const turn of turns) {
+    const hasRetry = retryPatterns.some((p) => {
+      p.lastIndex = 0;
+      return p.test(turn.text);
+    });
+    if (hasRetry) {
+      if (retryCount === 0) retryStart = turn.index;
+      retryCount++;
+      if (retryCount >= 3) {
+        signals2.push({
+          type: "repair-loop",
+          turn: turn.index,
+          score: 75,
+          description: "Repair loop",
+          details: `${retryCount} retry attempts since turn ${retryStart}`
+        });
+      }
+    } else {
+      retryCount = 0;
+    }
+  }
+  return signals2;
+}
+function normalizeError(error) {
+  return error.trim().toLowerCase().replace(/\d+/g, "N").replace(/['"][^'"]+['"]/g, "STR").replace(/\s+/g, " ").substring(0, 80);
+}
+function deduplicateSignals3(signals2) {
+  const seen = /* @__PURE__ */ new Set();
+  return signals2.filter((s) => {
+    const key = `${s.turn}:${s.type}:${s.details?.substring(0, 40)}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+function scoreRepairLoops(signals2) {
+  const repairSignals = signals2.filter((s) => s.type === "repair-loop");
+  if (repairSignals.length === 0) return 0;
+  return Math.min(100, repairSignals.reduce((sum, s) => sum + s.score, 0) / repairSignals.length + repairSignals.length * 15);
+}
+
+// src/detect/quality.ts
+init_esm_shims();
+function detectQualityDecline(turns) {
+  const signals2 = [];
+  const assistantTurns = turns.filter((t) => t.type === "assistant");
+  if (assistantTurns.length < 6) return signals2;
+  const mid = Math.floor(assistantTurns.length / 2);
+  const firstHalf = assistantTurns.slice(0, mid);
+  const secondHalf = assistantTurns.slice(mid);
+  const lengthSignal = detectLengthDecline(firstHalf, secondHalf);
+  if (lengthSignal) signals2.push(lengthSignal);
+  const hedgingSignal = detectHedgingIncrease(firstHalf, secondHalf);
+  if (hedgingSignal) signals2.push(hedgingSignal);
+  const codeSignal = detectCodeBlockDecline(firstHalf, secondHalf);
+  if (codeSignal) signals2.push(codeSignal);
+  const windowSignals = detectSlidingWindowDecline(assistantTurns);
+  signals2.push(...windowSignals);
+  return signals2;
+}
+function detectLengthDecline(first, second) {
+  const avgFirst = average(first.map((t) => t.wordCount));
+  const avgSecond = average(second.map((t) => t.wordCount));
+  if (avgFirst === 0) return null;
+  const ratio = avgSecond / avgFirst;
+  if (ratio < 0.4) {
+    return {
+      type: "quality-decline",
+      turn: second[0].index,
+      score: 80,
+      description: "Response quality decline",
+      details: `Response length dropped to ${Math.round(ratio * 100)}% of earlier average`
+    };
+  }
+  if (ratio < 0.6) {
+    return {
+      type: "quality-decline",
+      turn: second[0].index,
+      score: 50,
+      description: "Response quality decline",
+      details: `Response length dropped to ${Math.round(ratio * 100)}% of earlier average`
+    };
+  }
+  return null;
+}
+function detectHedgingIncrease(first, second) {
+  const avgHedgingFirst = average(first.map((t) => t.hedgingCount));
+  const avgHedgingSecond = average(second.map((t) => t.hedgingCount));
+  if (avgHedgingSecond > avgHedgingFirst * 2 && avgHedgingSecond >= 3) {
+    return {
+      type: "quality-decline",
+      turn: second[0].index,
+      score: 60,
+      description: "Hedging language increase",
+      details: `Hedging phrases increased from ${avgHedgingFirst.toFixed(1)} to ${avgHedgingSecond.toFixed(1)} per response`
+    };
+  }
+  return null;
+}
+function detectCodeBlockDecline(first, second) {
+  const avgCodeFirst = average(first.map((t) => t.codeBlocks));
+  const avgCodeSecond = average(second.map((t) => t.codeBlocks));
+  if (avgCodeFirst >= 1 && avgCodeSecond < avgCodeFirst * 0.3) {
+    return {
+      type: "quality-decline",
+      turn: second[0].index,
+      score: 50,
+      description: "Less code, more talk",
+      details: `Code blocks dropped from ${avgCodeFirst.toFixed(1)} to ${avgCodeSecond.toFixed(1)} per response`
+    };
+  }
+  return null;
+}
+function detectSlidingWindowDecline(turns) {
+  const signals2 = [];
+  if (turns.length < 8) return signals2;
+  const windowSize = Math.max(3, Math.floor(turns.length / 5));
+  for (let i = windowSize; i < turns.length - windowSize; i++) {
+    const before = turns.slice(i - windowSize, i);
+    const after = turns.slice(i, i + windowSize);
+    const qualityBefore = computeWindowQuality(before);
+    const qualityAfter = computeWindowQuality(after);
+    if (qualityBefore > 0 && qualityAfter / qualityBefore < 0.5) {
+      signals2.push({
+        type: "quality-decline",
+        turn: turns[i].index,
+        score: 70,
+        description: "Quality cliff detected",
+        details: `Sharp quality drop at turn ${turns[i].index}`
+      });
+      break;
+    }
+  }
+  return signals2;
+}
+function computeWindowQuality(turns) {
+  const avgLength = average(turns.map((t) => t.wordCount));
+  const avgCode = average(turns.map((t) => t.codeBlocks));
+  const avgHedging = average(turns.map((t) => t.hedgingCount));
+  return avgLength * 0.5 + avgCode * 100 - avgHedging * 20;
+}
+function average(nums) {
+  if (nums.length === 0) return 0;
+  return nums.reduce((a, b) => a + b, 0) / nums.length;
+}
+function scoreQuality(signals2) {
+  const qualitySignals = signals2.filter((s) => s.type === "quality-decline");
+  if (qualitySignals.length === 0) return 0;
+  const avg = qualitySignals.reduce((sum, s) => sum + s.score, 0) / qualitySignals.length;
+  return Math.min(100, avg + qualitySignals.length * 5);
+}
+
+// src/detect/saturation.ts
+init_esm_shims();
+function detectSaturation(turns) {
+  const signals2 = [];
+  const totalChars = turns.reduce((sum, t) => sum + t.text.length, 0);
+  const estimatedTokens = Math.ceil(totalChars / CHARS_PER_TOKEN);
+  const saturationPct = estimatedTokens / CONTEXT_LIMIT * 100;
+  if (saturationPct >= 80) {
+    signals2.push({
+      type: "saturation",
+      turn: turns[turns.length - 1]?.index ?? 0,
+      score: 90,
+      description: "Context window nearly full",
+      details: `~${formatTokens(estimatedTokens)} tokens used (${Math.round(saturationPct)}% of ${formatTokens(CONTEXT_LIMIT)})`
+    });
+  } else if (saturationPct >= 60) {
+    signals2.push({
+      type: "saturation",
+      turn: turns[turns.length - 1]?.index ?? 0,
+      score: 60,
+      description: "Context saturation rising",
+      details: `~${formatTokens(estimatedTokens)} tokens used (${Math.round(saturationPct)}% of ${formatTokens(CONTEXT_LIMIT)})`
+    });
+  } else if (saturationPct >= 40) {
+    signals2.push({
+      type: "saturation",
+      turn: turns[turns.length - 1]?.index ?? 0,
+      score: 30,
+      description: "Context usage moderate",
+      details: `~${formatTokens(estimatedTokens)} tokens used (${Math.round(saturationPct)}%)`
+    });
+  }
+  if (turns.length >= 10) {
+    const firstQuarter = turns.slice(0, Math.floor(turns.length / 4));
+    const lastQuarter = turns.slice(-Math.floor(turns.length / 4));
+    const rateFirst = firstQuarter.reduce((s, t) => s + t.text.length, 0) / Math.max(1, firstQuarter.length);
+    const rateLast = lastQuarter.reduce((s, t) => s + t.text.length, 0) / Math.max(1, lastQuarter.length);
+    if (rateFirst > 0 && rateLast / rateFirst > 2) {
+      signals2.push({
+        type: "saturation",
+        turn: lastQuarter[0]?.index ?? 0,
+        score: 40,
+        description: "Token accumulation accelerating",
+        details: `Message sizes grew ${(rateLast / rateFirst).toFixed(1)}x from session start`
+      });
+    }
+  }
+  return signals2;
+}
+function formatTokens(n) {
+  if (n >= 1e6) return `${(n / 1e6).toFixed(1)}M`;
+  if (n >= 1e3) return `${(n / 1e3).toFixed(0)}K`;
+  return String(n);
+}
+function scoreSaturation(signals2) {
+  const saturationSignals = signals2.filter((s) => s.type === "saturation");
+  if (saturationSignals.length === 0) return 0;
+  return Math.min(100, Math.max(...saturationSignals.map((s) => s.score)));
+}
+
+// src/detect/index.ts
 var SIGNAL_WEIGHTS = {
-  contradiction: 0.4,
-  repetition: 0.3,
-  saturation: 0.3
+  violation: 0.25,
+  circular: 0.25,
+  repairLoop: 0.25,
+  quality: 0.15,
+  saturation: 0.1
 };
-function computeRotScore(db2, sessionId, messages) {
-  const turn = countTurns(messages);
-  const contradictionScore = scoreContradictions2(db2, sessionId);
-  const recentResponses = getLastAssistantResponses(messages, 5);
-  const repetitionScore = scoreRepetitionFast(recentResponses);
-  const saturationScore = scoreSaturation(messages);
+function analyzeTranscript(messages) {
+  const turns = parseAllTurns(messages);
+  const totalTurns = turns.filter((t) => t.type === "assistant").length;
+  const signals2 = [
+    ...detectViolations(turns),
+    ...detectCircular(turns),
+    ...detectRepairLoops(turns),
+    ...detectQualityDecline(turns),
+    ...detectSaturation(turns)
+  ];
+  signals2.sort((a, b) => a.turn - b.turn);
+  const violationScore = scoreViolations(signals2);
+  const circularScore = scoreCircular(signals2);
+  const repairLoopScore = scoreRepairLoops(signals2);
+  const qualityScore = scoreQuality(signals2);
+  const saturationScore = scoreSaturation(signals2);
   const combined = Math.round(
-    contradictionScore * SIGNAL_WEIGHTS.contradiction + repetitionScore * SIGNAL_WEIGHTS.repetition + saturationScore * SIGNAL_WEIGHTS.saturation
+    violationScore * SIGNAL_WEIGHTS.violation + circularScore * SIGNAL_WEIGHTS.circular + repairLoopScore * SIGNAL_WEIGHTS.repairLoop + qualityScore * SIGNAL_WEIGHTS.quality + saturationScore * SIGNAL_WEIGHTS.saturation
   );
   const level = getRotLevel(combined);
+  const rotPoint = findRotPoint(signals2);
+  const sessionDuration = computeSessionDuration(messages);
   return {
-    contradictionScore: Math.round(contradictionScore),
-    repetitionScore: Math.round(repetitionScore),
-    saturationScore: Math.round(saturationScore),
-    combined,
-    level,
-    turn
+    score: {
+      violationScore,
+      circularScore,
+      repairLoopScore,
+      qualityScore,
+      saturationScore,
+      combined,
+      level,
+      turn: totalTurns,
+      rotPoint
+    },
+    signals: signals2,
+    turns,
+    sessionDuration,
+    totalTurns
   };
+}
+function parseAllTurns(messages) {
+  const turns = [];
+  let turnIndex = 0;
+  for (const msg of messages) {
+    const text = getMessageText(msg);
+    if (!text) continue;
+    turnIndex++;
+    const toolCalls = extractToolCalls(msg);
+    const codeBlocks = countCodeBlocks(text);
+    const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
+    const hedgingCount = msg.type === "assistant" ? countHedgingPhrases(text) : 0;
+    turns.push({
+      index: turnIndex,
+      type: msg.type,
+      text,
+      timestamp: msg.timestamp,
+      toolCalls,
+      codeBlocks,
+      wordCount,
+      hedgingCount
+    });
+  }
+  return turns;
+}
+function extractToolCalls(msg) {
+  const tools = [];
+  if (Array.isArray(msg.message.content)) {
+    for (const block of msg.message.content) {
+      if (block.type === "tool_use" || block.type === "tool_call") {
+        const b = block;
+        const input = b.input;
+        tools.push({
+          toolName: b.name || "unknown",
+          filePath: input?.file_path || input?.path || input?.filePath || void 0,
+          input: input ? JSON.stringify(input).substring(0, 200) : void 0
+        });
+      }
+      if (block.type === "tool_result") {
+        const b = block;
+        const content = b.content;
+        if (content && /(?:error|Error|FAIL|exit code [1-9])/.test(content)) {
+          const lastTool = tools[tools.length - 1];
+          if (lastTool) {
+            lastTool.exitCode = 1;
+            lastTool.error = content.substring(0, 200);
+          }
+        }
+      }
+    }
+  }
+  if (typeof msg.message.content === "string") {
+    const text = msg.message.content;
+    const toolPattern = /(?:Running|Executing|Called)\s+`?(\w+)`?\s+(?:on|with|for)\s+[`"']?([^\s`"'\n]+)/gi;
+    let match;
+    while ((match = toolPattern.exec(text)) !== null) {
+      tools.push({
+        toolName: match[1],
+        filePath: match[2]
+      });
+    }
+  }
+  return tools;
+}
+function countCodeBlocks(text) {
+  const matches = text.match(/```/g);
+  return matches ? Math.floor(matches.length / 2) : 0;
 }
 function getRotLevel(score) {
-  if (score <= 30) return "green";
-  if (score <= 60) return "yellow";
-  return "red";
+  if (score <= 20) return "healthy";
+  if (score <= 45) return "degrading";
+  return "rotted";
 }
-function formatRotOutput(score) {
-  if (score.level === "green" && score.combined < 15) {
-    return null;
-  }
-  if (score.level === "green") {
-    return { stdout: JSON.stringify({ suppressOutput: true }) };
-  }
-  if (score.level === "yellow") {
-    return {
-      stderr: `\u26A0\uFE0F OpenRot: Session health ${score.combined}% \u2014 quality may be degrading`
-    };
-  }
-  return {
-    stderr: `\u{1F534} OpenRot: Session health ${score.combined}% \u2014 output unreliable
-   Run 'openrot handoff' for a fresh start with full context preserved`
-  };
+function findRotPoint(signals2) {
+  const significant = signals2.filter((s) => s.score >= 60);
+  if (significant.length === 0) return null;
+  return Math.min(...significant.map((s) => s.turn));
 }
-function saveRotScore(db2, sessionId, score, saveFn = () => {
-}) {
+function computeSessionDuration(messages) {
+  if (messages.length < 2) return "0m";
+  const first = messages[0].timestamp;
+  const last = messages[messages.length - 1].timestamp;
+  if (!first || !last) {
+    const turns = messages.filter((m) => m.type === "assistant").length;
+    const estimatedMinutes = turns * 3;
+    if (estimatedMinutes >= 60) {
+      return `${Math.floor(estimatedMinutes / 60)}h ${estimatedMinutes % 60}m`;
+    }
+    return `${estimatedMinutes}m`;
+  }
   try {
-    db2.run(
-      `INSERT INTO rot_scores (id, session_id, turn, contradiction_score, repetition_score, saturation_score, combined_score, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        uuidv45(),
-        sessionId,
-        score.turn,
-        score.contradictionScore,
-        score.repetitionScore,
-        score.saturationScore,
-        score.combined,
-        Date.now()
-      ]
-    );
-    saveFn();
+    const startMs = new Date(first).getTime();
+    const endMs = new Date(last).getTime();
+    const durationMs = endMs - startMs;
+    const minutes = Math.round(durationMs / 6e4);
+    if (minutes >= 60) {
+      return `${Math.floor(minutes / 60)}h ${minutes % 60}m`;
+    }
+    return `${minutes}m`;
   } catch {
-  }
-}
-function getLatestRotScore(db2, sessionId) {
-  try {
-    const results = db2.exec(
-      "SELECT * FROM rot_scores WHERE session_id = ? ORDER BY created_at DESC LIMIT 1",
-      [sessionId]
-    );
-    if (!results.length || !results[0].values.length) return null;
-    const cols = results[0].columns;
-    const vals = results[0].values[0];
-    const row = {};
-    cols.forEach((c, i) => {
-      row[c] = vals[i];
-    });
-    return {
-      contradictionScore: row.contradiction_score,
-      repetitionScore: row.repetition_score,
-      saturationScore: row.saturation_score,
-      combined: row.combined_score,
-      level: getRotLevel(row.combined_score),
-      turn: row.turn
-    };
-  } catch {
-    return null;
+    return "?";
   }
 }
 
-// src/cli/recap.ts
-import path17 from "path";
-import os12 from "os";
-import fs16 from "fs";
-async function runRecap() {
-  try {
-    const db2 = await getDb();
-    const sessionStore = new SessionStore(db2);
-    const decisionStore = new DecisionStore(db2);
-    const warningStore = new WarningStore(db2);
-    const sessions = sessionStore.getAll();
-    if (sessions.length === 0) {
-      console.log(source_default.dim("No sessions found."));
-      return;
-    }
-    const session = sessions[0];
-    const decisions = decisionStore.getBySessionId(session.id);
-    const warnings = warningStore.getBySessionId(session.id);
-    const latestScore = getLatestRotScore(db2, session.id);
-    const endTime = session.endedAt || Date.now();
-    const durationMs = endTime - session.createdAt;
-    const hours = Math.floor(durationMs / (1e3 * 60 * 60));
-    const minutes = Math.floor(durationMs % (1e3 * 60 * 60) / (1e3 * 60));
-    const duration = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-    const date = new Date(session.createdAt).toLocaleDateString("en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric"
-    });
-    const projectName = path17.basename(process.cwd());
-    const editor = session.editor || "Unknown";
-    const scoreStr = latestScore ? `${latestScore.combined}% (${latestScore.level})` : "N/A";
-    const recap = [
-      "\u2501".repeat(60),
-      `Session Recap \u2014 ${date}`,
-      `Project: ${projectName} \xB7 Tool: ${editor} \xB7 Duration: ${duration}`,
-      `Final Rot Score: ${scoreStr}`,
-      "",
-      `Decisions made: ${decisions.length}`
-    ];
-    for (let i = 0; i < decisions.length; i++) {
-      recap.push(`${i + 1}. ${decisions[i].commitment}`);
-    }
-    if (warnings.length > 0) {
-      recap.push("");
-      recap.push("Warnings:");
-      for (const w of warnings) {
-        const d = decisionStore.getById(w.priorDecisionId);
-        recap.push(`- Turn ${w.currentTurn}: ${d ? d.commitment : "unknown"} contradiction (${Math.round(w.confidence * 100)}%)`);
-      }
-    }
-    recap.push("\u2501".repeat(60));
-    const recapText = recap.join("\n");
-    console.log("\n" + recapText + "\n");
-    try {
-      const journalDir = path17.join(os12.homedir(), ".openrot", "journal");
-      if (!fs16.existsSync(journalDir)) {
-        fs16.mkdirSync(journalDir, { recursive: true });
-      }
-      const isoDate = new Date(session.createdAt).toISOString().split("T")[0];
-      const filename = `${isoDate}-${projectName}.md`;
-      const journalPath = path17.join(journalDir, filename);
-      fs16.writeFileSync(journalPath, recapText, "utf-8");
-      console.log(source_default.dim(`Saved to ${journalPath}`));
-    } catch {
-    }
-  } catch (error) {
-    console.error(source_default.red("Recap failed:"), error);
+// src/cli/scan.ts
+async function runScan(options) {
+  const targetPath = resolveScanPath(options.path);
+  if (!targetPath) {
+    console.log(source_default.yellow("No transcript files found."));
+    console.log("");
+    console.log("Usage:");
+    console.log(`  ${source_default.bold("openrot scan")} ~/.claude/projects/`);
+    console.log(`  ${source_default.bold("openrot scan")} <path-to-session.jsonl>`);
+    console.log("");
+    console.log("Claude Code stores transcripts in:");
+    console.log(source_default.dim(`  ${path13.join(os11.homedir(), ".claude", "projects")}`));
+    return;
   }
+  const transcripts = findTranscripts(targetPath);
+  if (transcripts.length === 0) {
+    console.log(source_default.yellow("No .jsonl transcript files found at:"));
+    console.log(source_default.dim(`  ${targetPath}`));
+    return;
+  }
+  console.log("");
+  if (transcripts.length === 1) {
+    const result = analyzeFile(transcripts[0]);
+    if (result) renderSingleSession(result.result, result.sessionId, result.file);
+  } else {
+    renderMultiSession(transcripts);
+  }
+}
+function resolveScanPath(input) {
+  if (input) {
+    const resolved = path13.resolve(input);
+    if (fs13.existsSync(resolved)) return resolved;
+    if (input.startsWith("~")) {
+      const expanded = path13.join(os11.homedir(), input.slice(1));
+      if (fs13.existsSync(expanded)) return expanded;
+    }
+    return null;
+  }
+  const claudeDir = path13.join(os11.homedir(), ".claude", "projects");
+  if (fs13.existsSync(claudeDir)) return claudeDir;
+  return null;
+}
+function analyzeFile(file) {
+  try {
+    const messages = parseTranscript(file);
+    if (messages.length === 0) return null;
+    const result = analyzeTranscript(messages);
+    const sessionId = path13.basename(file, ".jsonl").substring(0, 8);
+    return { result, sessionId, file };
+  } catch {
+    return null;
+  }
+}
+function renderSingleSession(result, sessionId, file) {
+  const { score, signals: signals2, totalTurns, sessionDuration } = result;
+  const levelColor = getLevelColor(score.level);
+  const qualityBar = renderQualityBar(score.combined);
+  const levelLabel = score.level.toUpperCase();
+  console.log(source_default.dim("\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510"));
+  console.log(source_default.dim("\u2502") + source_default.bold("  OpenRot \u2014 Session Analysis") + " ".repeat(21) + source_default.dim("\u2502"));
+  console.log(source_default.dim("\u2502") + `  Session: ${source_default.bold(sessionId)} (${sessionDuration}, ${totalTurns} turns)` + padRight(45 - sessionId.length - sessionDuration.length - String(totalTurns).length) + source_default.dim("\u2502"));
+  console.log(source_default.dim("\u2502") + `  Quality: ${qualityBar} ${levelColor(levelLabel)}` + " ".repeat(Math.max(1, 7 - levelLabel.length)) + source_default.dim("\u2502"));
+  console.log(source_default.dim("\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518"));
+  if (totalTurns > 0) {
+    console.log("");
+    console.log(source_default.bold("Timeline:"));
+    renderTimeline(totalTurns, score.rotPoint);
+  }
+  if (signals2.length > 0) {
+    console.log("");
+    console.log(source_default.bold("Signals:"));
+    const displayed = signals2.filter((s) => s.score >= 40).slice(0, 10);
+    for (const signal of displayed) {
+      const icon = signal.score >= 70 ? "\u{1F534}" : "\u26A0\uFE0F ";
+      const turnStr = source_default.dim(`Turn ${String(signal.turn).padStart(3)}`);
+      console.log(`  ${icon} ${turnStr}  ${source_default.bold(signal.description)}`);
+      if (signal.details) {
+        console.log(`           ${source_default.dim(signal.details)}`);
+      }
+    }
+  }
+  console.log("");
+  console.log(source_default.bold("\u2501".repeat(49)));
+  if (score.rotPoint && score.level !== "healthy") {
+    const wastedTurns = totalTurns - score.rotPoint;
+    const wastedMinutes = estimateMinutes(wastedTurns);
+    console.log(levelColor(`${wastedTurns} turns of degraded output (~${wastedMinutes} min wasted)`));
+    console.log(`Run: ${source_default.bold(`openrot fix --session ${sessionId}`)}`);
+  } else if (score.level === "healthy") {
+    console.log(source_default.green("Session looks healthy. No degradation detected."));
+  } else {
+    console.log(levelColor(`Session is ${score.level}. Score: ${score.combined}%`));
+  }
+  console.log(source_default.bold("\u2501".repeat(49)));
+  console.log("");
+}
+function renderMultiSession(transcripts) {
+  const sorted = transcripts.map((f) => ({ file: f, mtime: fs13.statSync(f).mtimeMs })).sort((a, b) => b.mtime - a.mtime).slice(0, 20);
+  console.log(source_default.bold(`OpenRot \u2014 Scanning ${sorted.length} session${sorted.length > 1 ? "s" : ""}`));
+  console.log(source_default.bold("\u2501".repeat(60)));
+  console.log("");
+  let degradedCount = 0;
+  let rottedCount = 0;
+  for (const { file } of sorted) {
+    const analysis = analyzeFile(file);
+    if (!analysis) continue;
+    const { result, sessionId } = analysis;
+    const { score, totalTurns, sessionDuration } = result;
+    if (score.level === "degrading") degradedCount++;
+    if (score.level === "rotted") rottedCount++;
+    const levelColor = getLevelColor(score.level);
+    const icon = score.level === "rotted" ? "\u{1F534}" : score.level === "degrading" ? "\u26A0\uFE0F " : "\u2705";
+    const barMini = renderQualityBarMini(score.combined);
+    console.log(`  ${icon} ${source_default.bold(sessionId)}  ${barMini}  ${levelColor(score.level.toUpperCase().padEnd(9))}  ${source_default.dim(`${totalTurns} turns, ${sessionDuration}`)}`);
+    if (score.rotPoint && score.level !== "healthy") {
+      const topSignal = result.signals.filter((s) => s.score >= 60)[0];
+      if (topSignal) {
+        console.log(`     ${source_default.dim(`\u2514\u2500 ${topSignal.description}: ${topSignal.details || ""}`.substring(0, 70))}`);
+      }
+    }
+  }
+  console.log("");
+  console.log(source_default.bold("\u2501".repeat(60)));
+  if (rottedCount > 0 || degradedCount > 0) {
+    const parts = [];
+    if (rottedCount > 0) parts.push(source_default.red(`${rottedCount} rotted`));
+    if (degradedCount > 0) parts.push(source_default.yellow(`${degradedCount} degrading`));
+    console.log(`${parts.join(", ")} out of ${sorted.length} sessions`);
+    console.log(`Run ${source_default.bold("openrot scan <session.jsonl>")} for detailed analysis`);
+  } else {
+    console.log(source_default.green("All recent sessions look healthy."));
+  }
+  console.log(source_default.bold("\u2501".repeat(60)));
+  console.log("");
+}
+function renderTimeline(totalTurns, rotPoint) {
+  const maxWidth = Math.min(totalTurns, 50);
+  const scale = totalTurns / maxWidth;
+  let timeline = "";
+  for (let i = 0; i < maxWidth; i++) {
+    const turn = Math.round(i * scale);
+    if (rotPoint && turn >= rotPoint) {
+      if (turn === Math.round((rotPoint - 1) / scale) * Math.round(scale)) {
+        timeline += source_default.dim("\u2502") + source_default.red("\u26A0");
+      } else {
+        timeline += source_default.red("\u25CF");
+      }
+    } else {
+      timeline += source_default.green("\u25CF");
+    }
+    timeline += " ";
+  }
+  console.log(`  ${timeline}`);
+  const startLabel = "Turn 1";
+  const endLabel = `${totalTurns}`;
+  if (rotPoint) {
+    const rotPos = Math.round((rotPoint - 1) / totalTurns * maxWidth * 2);
+    const padding = " ".repeat(Math.max(0, rotPos - 2));
+    console.log(source_default.dim(`  ${startLabel}${padding}${rotPoint}`) + " ".repeat(Math.max(1, maxWidth * 2 - rotPos - endLabel.length - startLabel.length - 2)) + source_default.dim(endLabel));
+    console.log(`  ${" ".repeat(Math.max(0, rotPos + startLabel.length - 1))}${source_default.red("\u2514\u2500 rot detected")}`);
+  } else {
+    console.log(source_default.dim(`  ${startLabel}${" ".repeat(Math.max(1, maxWidth * 2 - startLabel.length - endLabel.length))}${endLabel}`));
+  }
+}
+function renderQualityBar(score) {
+  const barWidth = 20;
+  const healthyWidth = Math.round((100 - score) / 100 * barWidth);
+  const degradedWidth = barWidth - healthyWidth;
+  const healthyPart = source_default.green("\u2588".repeat(healthyWidth));
+  const degradedPart = source_default.dim("\u2591".repeat(degradedWidth));
+  return `${healthyPart}${degradedPart} ${score}%`;
+}
+function renderQualityBarMini(score) {
+  const barWidth = 8;
+  const filled = Math.round((100 - score) / 100 * barWidth);
+  const empty = barWidth - filled;
+  if (score <= 20) return source_default.green("\u2588".repeat(filled) + "\u2591".repeat(empty));
+  if (score <= 45) return source_default.yellow("\u2588".repeat(filled) + "\u2591".repeat(empty));
+  return source_default.red("\u2588".repeat(filled) + "\u2591".repeat(empty));
+}
+function getLevelColor(level) {
+  if (level === "healthy") return source_default.green;
+  if (level === "degrading") return source_default.yellow;
+  return source_default.red;
+}
+function padRight(n) {
+  return " ".repeat(Math.max(0, n));
+}
+function estimateMinutes(turns) {
+  return Math.round(turns * 2.5);
+}
+
+// src/cli/fix.ts
+init_esm_shims();
+import fs14 from "fs";
+import path14 from "path";
+import os12 from "os";
+async function runFix(options) {
+  const transcript = findTargetTranscript(options.session);
+  if (!transcript) {
+    console.log(source_default.yellow("No transcript found."));
+    console.log("");
+    console.log("Usage:");
+    console.log(`  ${source_default.bold("openrot fix")}                         Fix the most recent session`);
+    console.log(`  ${source_default.bold("openrot fix --session abc123")}        Fix a specific session`);
+    console.log("");
+    return;
+  }
+  const messages = parseTranscript(transcript);
+  if (messages.length === 0) {
+    console.log(source_default.yellow("Transcript is empty."));
+    return;
+  }
+  const result = analyzeTranscript(messages);
+  const { score, signals: signals2 } = result;
+  const prompt = generateFixPrompt(messages, result);
+  console.log("");
+  console.log(source_default.bold("\u2501".repeat(60)));
+  console.log(prompt);
+  console.log(source_default.bold("\u2501".repeat(60)));
+  console.log("");
+  try {
+    const { default: clipboardy } = await Promise.resolve().then(() => (init_clipboardy(), clipboardy_exports));
+    await clipboardy.write(prompt);
+    console.log(source_default.green("\u2705 Handoff prompt copied to clipboard"));
+  } catch {
+    console.log(source_default.dim("(Could not copy to clipboard)"));
+  }
+  const handoffDir = path14.join(os12.homedir(), ".openrot", "handoffs");
+  if (!fs14.existsSync(handoffDir)) fs14.mkdirSync(handoffDir, { recursive: true });
+  const date = (/* @__PURE__ */ new Date()).toISOString().split("T")[0];
+  const projectName = path14.basename(process.cwd());
+  const fileName = `${date}-${projectName}.md`;
+  const filePath = path14.join(handoffDir, fileName);
+  fs14.writeFileSync(filePath, prompt, "utf-8");
+  console.log(source_default.dim(`   Saved to ${filePath}`));
+  if (score.rotPoint) {
+    console.log("");
+    console.log(`   Session degraded at turn ${source_default.bold(String(score.rotPoint))}`);
+    console.log(`   ${source_default.green("\u2713")} Decisions and progress from before turn ${score.rotPoint} preserved`);
+    console.log(`   ${source_default.yellow("\u26A0")} Work after turn ${score.rotPoint} may need re-verification`);
+  }
+  console.log("");
+  console.log(source_default.dim("   Paste into a new session to continue with full context."));
+  console.log("");
+}
+function findTargetTranscript(sessionHint) {
+  const claudeDir = path14.join(os12.homedir(), ".claude", "projects");
+  if (!fs14.existsSync(claudeDir)) return null;
+  const allTranscripts = findTranscripts(claudeDir);
+  if (allTranscripts.length === 0) return null;
+  if (sessionHint) {
+    const match = allTranscripts.find((f) => path14.basename(f).includes(sessionHint));
+    if (match) return match;
+  }
+  return allTranscripts.map((f) => ({ file: f, mtime: fs14.statSync(f).mtimeMs })).sort((a, b) => b.mtime - a.mtime)[0]?.file || null;
+}
+function generateFixPrompt(messages, result) {
+  const { score, signals: signals2 } = result;
+  const rotPoint = score.rotPoint;
+  const preRotMessages = rotPoint ? messages.filter((_, i) => i < rotPoint * 2) : messages;
+  const decisions = extractDecisionsFromMessages(preRotMessages);
+  const completed = extractCompletedWork(preRotMessages);
+  const inProgress = extractInProgressWork(messages, rotPoint);
+  const avoid = extractAvoidPatterns(signals2);
+  const projectName = path14.basename(process.cwd());
+  const lines = [];
+  lines.push(`Continuing a previous session on ${projectName}.`);
+  if (rotPoint) {
+    lines.push(`The prior session degraded after turn ${rotPoint}.`);
+    lines.push("Below is the verified context from before degradation.");
+  }
+  lines.push("");
+  if (decisions.length > 0) {
+    lines.push("DECISIONS MADE:");
+    for (const d of decisions) lines.push(`- ${d}`);
+    lines.push("");
+  }
+  if (completed.length > 0) {
+    lines.push(`COMPLETED${rotPoint ? " (verified before degradation)" : ""}:`);
+    for (const c of completed) lines.push(`- ${c}`);
+    lines.push("");
+  }
+  if (inProgress.length > 0) {
+    lines.push(`IN PROGRESS${rotPoint ? " (may need re-verification)" : ""}:`);
+    for (const ip of inProgress) lines.push(`- ${ip}`);
+    lines.push("");
+  }
+  if (avoid.length > 0) {
+    lines.push("AVOID (these caused issues in the prior session):");
+    for (const a of avoid) lines.push(`- ${a}`);
+    lines.push("");
+  }
+  const lastTask = inProgress[0] || completed[completed.length - 1] || "the current task";
+  lines.push(`Continue from ${lastTask}.`);
+  return lines.join("\n");
+}
+function extractDecisionsFromMessages(messages) {
+  const decisions = [];
+  const seen = /* @__PURE__ */ new Set();
+  for (const msg of messages) {
+    if (msg.type !== "assistant") continue;
+    const text = getMessageText(msg);
+    const extracted = extractWithRegex(text);
+    for (const e of extracted) {
+      const normalized = e.commitment.toLowerCase();
+      if (!seen.has(normalized)) {
+        seen.add(normalized);
+        decisions.push(e.commitment);
+      }
+    }
+  }
+  return decisions.slice(0, 15);
+}
+function extractCompletedWork(messages) {
+  const completed = [];
+  const seen = /* @__PURE__ */ new Set();
+  const donePatterns = [
+    /(?:I've|I have|we've|we have)\s+(?:created|built|implemented|added|set up|configured|written|updated|fixed|completed)\s+(.+?)(?:\.|$)/gi,
+    /✅\s*(.+)/g
+  ];
+  const assistantTexts = getAssistantMessages(messages);
+  for (const text of assistantTexts) {
+    for (const pattern of donePatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const item = match[1].trim().substring(0, 100);
+        if (item.length > 5 && !seen.has(item.toLowerCase())) {
+          seen.add(item.toLowerCase());
+          completed.push(item);
+        }
+      }
+    }
+  }
+  return completed.slice(0, 20);
+}
+function extractInProgressWork(messages, rotPoint) {
+  const relevantMessages = rotPoint ? messages.slice(Math.max(0, rotPoint * 2 - 4), rotPoint * 2 + 4) : messages.slice(-6);
+  const inProgress = [];
+  const progressPatterns = [
+    /(?:I'm|I am|let me|I'll)\s+(?:now\s+)?(?:working on|implementing|building|creating|adding|fixing|updating)\s+(.+?)(?:\.|$)/gi,
+    /(?:next|now)\s+(?:I'll|let's|we'll)\s+(.+?)(?:\.|$)/gi
+  ];
+  for (const msg of relevantMessages) {
+    const text = getMessageText(msg);
+    for (const pattern of progressPatterns) {
+      pattern.lastIndex = 0;
+      let match;
+      while ((match = pattern.exec(text)) !== null) {
+        const item = match[1].trim().substring(0, 100);
+        if (item.length > 5) inProgress.push(item);
+      }
+    }
+  }
+  return inProgress.slice(0, 5);
+}
+function extractAvoidPatterns(signals2) {
+  const avoid = [];
+  for (const signal of signals2) {
+    if (signal.type === "violation" && signal.details) {
+      avoid.push(signal.details);
+    }
+    if (signal.type === "circular" && signal.details) {
+      avoid.push(`Do not ${signal.details.toLowerCase()}`);
+    }
+    if (signal.type === "repair-loop" && signal.details) {
+      avoid.push(signal.details);
+    }
+  }
+  return avoid.slice(0, 10);
 }
 
 // src/hooks/analyze.ts
 init_esm_shims();
 var logger3 = getLogger();
-var lastOutputSessionId = null;
-var lastOutputLevel = null;
 async function handleAnalyze(hookInput) {
+  const startTime = Date.now();
   try {
-    const { session_id, transcript_path, cwd } = hookInput;
-    const messages = parseTranscript(transcript_path);
+    const { session_id, transcript_path } = hookInput;
+    const messages = tailTranscript(transcript_path, 40);
     if (messages.length === 0) return;
-    const db2 = await getDb();
-    const turn = countTurns(messages);
-    try {
-      const assistantTexts = getAssistantMessages(messages);
-      const lastResponse = assistantTexts[assistantTexts.length - 1];
-      if (lastResponse) {
-        const decisionStore = new DecisionStore(db2, saveToFile);
-        const extractions = await extractDecisions(lastResponse, {
-          mode: "regex",
-          modelClient: null
-        });
-        for (const extraction of extractions) {
-          if (!decisionStore.isDuplicate(session_id, extraction.commitment)) {
-            decisionStore.create(session_id, turn, extraction);
-          }
-        }
-      }
-    } catch {
+    const totalTurns = countTurns(messages);
+    const state = loadState(session_id);
+    if (state.lastTurn >= totalTurns && totalTurns > 0) return;
+    const result = analyzeTranscript(messages);
+    const { score, signals: signals2 } = result;
+    state.lastTurn = totalTurns;
+    state.turnScores.push({ turn: totalTurns, score: score.combined });
+    if (score.rotPoint && !state.rotPoint) {
+      state.rotPoint = score.rotPoint;
     }
-    const score = computeRotScore(db2, session_id, messages);
-    saveRotScore(db2, session_id, score, saveToFile);
-    const output = formatRotOutput(score);
-    if (!output) {
+    if (Date.now() - startTime > 4e3) {
+      saveState(state);
       return;
     }
-    if (lastOutputSessionId === session_id && lastOutputLevel === score.level && score.level !== "red") {
+    saveState(state);
+    if (score.level === "healthy") {
       return;
     }
-    lastOutputSessionId = session_id;
-    lastOutputLevel = score.level;
-    if (output.stdout) {
-      process.stdout.write(output.stdout);
+    if (score.level === "degrading") {
+      const topSignal = signals2.filter((s) => s.score >= 40)[0];
+      const detail = topSignal ? ` \u2014 ${topSignal.description.toLowerCase()}` : "";
+      process.stderr.write(
+        `\u26A0\uFE0F OpenRot: Session degrading (${score.combined}%)${detail}
+`
+      );
     }
-    if (output.stderr) {
-      process.stderr.write(output.stderr + "\n");
+    if (score.level === "rotted") {
+      const rotInfo = score.rotPoint ? ` \u2014 quality dropped at turn ${score.rotPoint}` : "";
+      process.stderr.write(
+        `\u{1F534} OpenRot: Session rotted (${score.combined}%)${rotInfo}. Run: openrot fix
+`
+      );
     }
     logger3.info("Rot score computed", {
       sessionId: session_id,
-      turn,
+      turn: totalTurns,
       score: score.combined,
-      level: score.level
+      level: score.level,
+      elapsed: Date.now() - startTime
     });
   } catch (error) {
     logger3.error("Analyze hook error", { error: String(error) });
@@ -7239,16 +7296,10 @@ var logger4 = getLogger();
 async function handleSessionStart(hookInput) {
   try {
     const { session_id, cwd } = hookInput;
-    const db2 = await getDb();
-    const sessionStore = new SessionStore(db2, saveToFile);
-    const session = sessionStore.create("claude_code");
-    try {
-      await syncDecisionsToProject(db2, cwd);
-    } catch {
-    }
+    const state = createFreshState(session_id);
+    saveState(state);
     logger4.info("Session started via hook", {
-      sessionId: session.id,
-      hookSessionId: session_id,
+      sessionId: session_id,
       cwd
     });
   } catch (error) {
@@ -7258,48 +7309,65 @@ async function handleSessionStart(hookInput) {
 
 // src/hooks/pre-compact.ts
 init_esm_shims();
+import fs15 from "fs";
+import path15 from "path";
+import os13 from "os";
 var logger5 = getLogger();
 async function handlePreCompact(hookInput) {
   try {
     const { session_id, transcript_path, cwd } = hookInput;
-    const db2 = await getDb();
     const messages = parseTranscript(transcript_path);
     if (messages.length === 0) return;
-    const decisionStore = new DecisionStore(db2, saveToFile);
-    const turn = countTurns(messages);
-    const allTexts = getAssistantMessages(messages);
-    let newDecisions = 0;
-    for (const text of allTexts) {
-      try {
-        const extractions = await extractDecisions(text, {
-          mode: "regex",
-          modelClient: null
-        });
-        for (const extraction of extractions) {
-          if (!decisionStore.isDuplicate(session_id, extraction.commitment)) {
-            decisionStore.create(session_id, turn, extraction);
-            newDecisions++;
-          }
+    const result = analyzeTranscript(messages);
+    const { score } = result;
+    const assistantTexts = getAssistantMessages(messages);
+    const decisions = [];
+    const seen = /* @__PURE__ */ new Set();
+    for (const text of assistantTexts) {
+      const extracted = extractWithRegex(text);
+      for (const e of extracted) {
+        const normalized = e.commitment.toLowerCase();
+        if (!seen.has(normalized)) {
+          seen.add(normalized);
+          decisions.push(e.commitment);
         }
-      } catch {
       }
     }
-    try {
-      const projectName = cwd.split(/[\\/]/).pop() || "unknown";
-      const handoffPrompt = await generateHandoff(db2, session_id, messages, projectName);
-      if (handoffPrompt) {
-        saveHandoff(db2, session_id, cwd, handoffPrompt, saveToFile);
-      }
-    } catch {
+    const state = loadState(session_id);
+    state.decisions = decisions.map((d, i) => ({
+      turn: i + 1,
+      commitment: d
+    }));
+    state.lastTurn = countTurns(messages);
+    if (score.rotPoint && !state.rotPoint) {
+      state.rotPoint = score.rotPoint;
     }
+    saveState(state);
+    const snapshotDir = path15.join(os13.homedir(), ".openrot", "snapshots");
+    if (!fs15.existsSync(snapshotDir)) fs15.mkdirSync(snapshotDir, { recursive: true });
+    const date = (/* @__PURE__ */ new Date()).toISOString().replace(/[:.]/g, "-");
+    const snapshotPath = path15.join(snapshotDir, `${date}-${session_id.substring(0, 8)}.json`);
+    fs15.writeFileSync(snapshotPath, JSON.stringify({
+      sessionId: session_id,
+      cwd,
+      turn: state.lastTurn,
+      score: score.combined,
+      level: score.level,
+      rotPoint: score.rotPoint,
+      decisions,
+      timestamp: (/* @__PURE__ */ new Date()).toISOString()
+    }, null, 2), "utf-8");
+    const decisionCount = decisions.length;
+    const levelMsg = score.level === "healthy" ? "" : ` Session health: ${score.combined}%.`;
     process.stderr.write(
-      `\u26A0\uFE0F OpenRot: Pre-compaction snapshot saved (${newDecisions} new decisions). Run 'openrot handoff' to use it.
+      `\u26A0\uFE0F OpenRot: Pre-compaction snapshot saved (${decisionCount} decisions).${levelMsg} Run 'openrot fix' to generate handoff.
 `
     );
     logger5.info("Pre-compact snapshot saved", {
       sessionId: session_id,
       cwd,
-      newDecisions
+      decisions: decisionCount,
+      score: score.combined
     });
   } catch (error) {
     logger5.error("PreCompact hook error", { error: String(error) });
@@ -7308,7 +7376,7 @@ async function handlePreCompact(hookInput) {
 
 // src/index.ts
 var program = new Command();
-program.name("openrot").description("Real-time AI session health scoring. Detects when output quality is degrading.").version("2.0.0");
+program.name("openrot").description("A linter for your AI context window. Detects when session quality is degrading.").version("2.0.0");
 program.command("analyze").description("Stop hook \u2014 score session health (called by Claude Code)").action(async () => {
   try {
     const input = await readHookInput();
@@ -7336,51 +7404,27 @@ program.command("pre-compact").description("PreCompact hook \u2014 save snapshot
   }
   process.exit(0);
 });
+program.command("scan").description("Analyze session transcript(s) for context degradation").argument("[path]", "Path to transcript file or directory").action(async (scanPath) => {
+  try {
+    await runScan({ path: scanPath });
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
+program.command("fix").description("Generate fresh start prompt with all context preserved").option("--session <id>", "Target a specific session").action(async (options) => {
+  try {
+    await runFix(options);
+  } catch (error) {
+    console.error(source_default.red("Error:"), error);
+    process.exit(1);
+  }
+});
 program.command("init").description("Set up OpenRot (auto-detects editors, registers hooks)").action(async () => {
   try {
     await runInit();
   } catch (error) {
     console.error(source_default.red("Error during init:"), error);
-    process.exit(1);
-  }
-});
-program.command("handoff").description("Generate fresh start prompt from current/last session").option("--for <editor>", "Save to editor file (claude, cursor, antigravity, copilot)").action(async (options) => {
-  try {
-    await runHandoff(options);
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("sync").description("Sync decisions to all editor instruction files").action(async () => {
-  try {
-    await runSync();
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("scan").description("Scan codebase against stored decisions").argument("[path]", "Path to scan (default: current directory)").option("--files", "Read file list from stdin (for pre-commit hook)").action(async (scanPath, options) => {
-  try {
-    await runScan({ path: scanPath, ...options });
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("guard").description("Install/remove pre-commit hook").option("--install", "Install pre-commit hook (default)").option("--remove", "Remove pre-commit hook").action((options) => {
-  try {
-    runGuard(options);
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("recap").description("Generate session summary/journal entry").action(async () => {
-  try {
-    await runRecap();
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
     process.exit(1);
   }
 });
@@ -7419,36 +7463,6 @@ program.command("test").description("Verify everything works").action(async () =
 program.command("model").description("Switch model provider and model").option("--provider <provider>", "Provider: ollama, openai, anthropic, gemini, regex").option("--model <model>", "Model name").option("--key <key>", "API key").action(async (options) => {
   try {
     await runModel(options);
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("inject").description("Inject/remove OpenRot instructions into editor instruction files").option("--remove", "Remove OpenRot instructions").action(async (options) => {
-  try {
-    await runInject(options);
-  } catch (error) {
-    console.error(source_default.red("Error:"), error);
-    process.exit(1);
-  }
-});
-program.command("reset").description("Clear session data").option("--hard", "Also clear configuration").action(async (options) => {
-  try {
-    const db2 = await getDb();
-    const sessionStore = new SessionStore(db2, saveToFile);
-    sessionStore.deleteAll();
-    console.log(source_default.green("\u2705 Session data cleared."));
-    if (options.hard) {
-      const fs17 = await import("fs");
-      const path18 = await import("path");
-      const os13 = await import("os");
-      const configPath = path18.join(os13.homedir(), ".openrot", "config.json");
-      if (fs17.existsSync(configPath)) {
-        fs17.unlinkSync(configPath);
-        console.log(source_default.green("\u2705 Configuration cleared."));
-      }
-    }
-    closeDb();
   } catch (error) {
     console.error(source_default.red("Error:"), error);
     process.exit(1);

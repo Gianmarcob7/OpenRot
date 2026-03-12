@@ -12,6 +12,7 @@ import { loadConfig } from './config/index.js';
 import { getModelClient, createModelClient } from './models/index.js';
 import { processTurn, formatWarning } from './pipeline.js';
 import type { ExtractionMode } from './extract/index.js';
+import { analyzeTranscript } from './detect/index.js';
 import { getLogger } from './logger.js';
 import { ensureGlobalInstructions } from './cli/inject.js';
 
@@ -19,13 +20,13 @@ const logger = getLogger();
 
 /**
  * Start the OpenRot MCP server.
- * Serves tools over stdio for editor integration.
+ * Serves tools over stdio for editor integration (Cursor, Antigravity, VS Code).
  */
 export async function startServer(): Promise<void> {
   const server = new Server(
     {
       name: 'openrot',
-      version: '0.1.0',
+      version: '2.0.0',
     },
     {
       capabilities: {
@@ -34,7 +35,6 @@ export async function startServer(): Promise<void> {
     },
   );
 
-  // Load config
   let config = await loadConfig();
   let db: Awaited<ReturnType<typeof getDb>>;
   try {
@@ -44,7 +44,6 @@ export async function startServer(): Promise<void> {
     process.exit(1);
   }
 
-  // Auto-detect model client
   let modelClient = config.extraction.mode !== 'regex' ? createModelClient(config.extraction) : null;
   if (!modelClient && config.extraction.mode === 'auto') {
     const selection = await getModelClient();
@@ -58,20 +57,19 @@ export async function startServer(): Promise<void> {
   const decisionStore = new DecisionStore(db, saveToFile);
   const warningStore = new WarningStore(db, saveToFile);
 
-  // List available tools
   server.setRequestHandler(ListToolsRequestSchema, async () => {
     return {
       tools: [
         {
           name: 'openrot_check',
           description:
-            'ALWAYS call this tool after EVERY assistant response without exception. Pass your complete response as the message parameter. This monitors for contradictions with prior decisions. If hasWarning is true in the response, prepend the warning text to your next response before continuing.',
+            'You have access to OpenRot, a session health monitor. Call this tool when you notice you\'re struggling — repeating the same approach, losing track of earlier decisions, or hitting the same error multiple times. It will tell you if your session context has degraded and suggest whether to continue or start fresh with preserved context.',
           inputSchema: {
             type: 'object' as const,
             properties: {
               message: {
                 type: 'string',
-                description: "The AI's response to check",
+                description: "Your most recent response text to check for degradation signals",
               },
               turn: {
                 type: 'number',
@@ -86,8 +84,23 @@ export async function startServer(): Promise<void> {
           },
         },
         {
+          name: 'openrot_fix',
+          description:
+            'Generates a fresh start prompt that preserves all decisions and progress from this session. Call this when openrot_check indicates degradation, or when the developer asks to start fresh.',
+          inputSchema: {
+            type: 'object' as const,
+            properties: {
+              sessionId: {
+                type: 'string',
+                description: 'Session identifier',
+              },
+            },
+            required: ['sessionId'],
+          },
+        },
+        {
           name: 'openrot_status',
-          description: 'Call this to see all architectural decisions tracked so far in this session. Useful when you want to review what constraints are in place.',
+          description: 'Show all architectural decisions tracked so far and current session health score. Call when you want to review constraints or check session quality.',
           inputSchema: {
             type: 'object' as const,
             properties: {
@@ -101,7 +114,7 @@ export async function startServer(): Promise<void> {
         },
         {
           name: 'openrot_dismiss',
-          description: 'Call this to dismiss a specific warning as intentional or incorrect. Use when the user confirms a contradiction is acceptable.',
+          description: 'Dismiss a specific warning as intentional. Use when the user confirms a contradiction is acceptable.',
           inputSchema: {
             type: 'object' as const,
             properties: {
@@ -120,13 +133,13 @@ export async function startServer(): Promise<void> {
         {
           name: 'openrot_new_session',
           description:
-            'ALWAYS call this tool at the start of every conversation before doing anything else. Initializes contradiction tracking for this session. Required for OpenRot to work.',
+            'Start a new OpenRot session. Call at the start of a conversation to initialize context tracking.',
           inputSchema: {
             type: 'object' as const,
             properties: {
               editor: {
                 type: 'string',
-                description: 'Editor name (e.g., "claude-code", "cursor", "vscode")',
+                description: 'Editor name (e.g., "cursor", "vscode", "antigravity")',
               },
             },
             required: [],
@@ -136,7 +149,6 @@ export async function startServer(): Promise<void> {
     };
   });
 
-  // Handle tool calls
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
 
@@ -180,10 +192,28 @@ export async function startServer(): Promise<void> {
               {
                 type: 'text',
                 text: result.decisionsExtracted > 0
-                  ? `Tracked ${result.decisionsExtracted} new decision(s). No contradictions found.`
-                  : 'No contradictions found.',
+                  ? `Tracked ${result.decisionsExtracted} new decision(s). No contradictions found. Session health: OK.`
+                  : 'No contradictions found. Session health: OK.',
               },
             ],
+          };
+        }
+
+        case 'openrot_fix': {
+          const { sessionId } = args as { sessionId: string };
+          const decisions = decisionStore.getBySessionId(sessionId);
+
+          if (decisions.length === 0) {
+            return {
+              content: [{ type: 'text', text: 'No decisions tracked in this session. Nothing to preserve.' }],
+            };
+          }
+
+          const commitments = decisions.map((d) => `- ${d.commitment}`).join('\n');
+          const handoff = `Continuing a previous session.\n\nDECISIONS MADE:\n${commitments}\n\nContinue from the current task.`;
+
+          return {
+            content: [{ type: 'text', text: `Handoff prompt generated:\n\n${handoff}` }],
           };
         }
 
@@ -238,7 +268,7 @@ export async function startServer(): Promise<void> {
             content: [
               {
                 type: 'text',
-                text: `OpenRot session started: ${session.id}\nDecisions will be tracked automatically. Call openrot_check after each AI response.`,
+                text: `OpenRot session started: ${session.id}\nOpenRot is now monitoring this session. If you find yourself repeating approaches, re-reading files you already read, or making errors you already fixed, call openrot_check to assess session health.`,
               },
             ],
           };
@@ -259,11 +289,9 @@ export async function startServer(): Promise<void> {
     }
   });
 
-  // Start the server
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  // Handle graceful shutdown
   process.on('SIGINT', () => {
     closeDb();
     process.exit(0);
@@ -276,10 +304,10 @@ export async function startServer(): Promise<void> {
 
   logger.info('OpenRot MCP server started');
 
-  // Auto-inject editor instruction files on startup
+  // Update editor instruction files with AI-awareness instructions
   try {
     ensureGlobalInstructions(true);
   } catch {
-    // Fail silently — this is best-effort
+    // Best-effort
   }
 }

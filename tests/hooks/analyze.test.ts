@@ -21,11 +21,9 @@ describe('analyze hook / rot score computation', () => {
     const sessionStore = new SessionStore(db);
     const session = sessionStore.create('test');
 
-    const messages = parseTranscriptContent('');
-    // Passes empty messages — should bail gracefully
     const score = computeRotScore(db, session.id, []);
     expect(score.combined).toBe(0);
-    expect(score.level).toBe('green');
+    expect(score.level).toBe('healthy');
   });
 
   it('computes rot score for a healthy session', () => {
@@ -39,8 +37,8 @@ describe('analyze hook / rot score computation', () => {
 
     const messages = parseTranscriptContent(content);
     const score = computeRotScore(db, session.id, messages);
-    expect(score.level).toBe('green');
-    expect(score.combined).toBeLessThan(30);
+    expect(score.level).toBe('healthy');
+    expect(score.combined).toBeLessThanOrEqual(20);
   });
 
   it('returns correct turn count', () => {
@@ -61,80 +59,74 @@ describe('analyze hook / rot score computation', () => {
 });
 
 describe('rot level classification', () => {
-  it('classifies green (0-30)', () => {
-    expect(getRotLevel(0)).toBe('green');
-    expect(getRotLevel(15)).toBe('green');
-    expect(getRotLevel(30)).toBe('green');
+  it('classifies healthy (0-20)', () => {
+    expect(getRotLevel(0)).toBe('healthy');
+    expect(getRotLevel(10)).toBe('healthy');
+    expect(getRotLevel(20)).toBe('healthy');
   });
 
-  it('classifies yellow (31-60)', () => {
-    expect(getRotLevel(31)).toBe('yellow');
-    expect(getRotLevel(45)).toBe('yellow');
-    expect(getRotLevel(60)).toBe('yellow');
+  it('classifies degrading (21-45)', () => {
+    expect(getRotLevel(21)).toBe('degrading');
+    expect(getRotLevel(30)).toBe('degrading');
+    expect(getRotLevel(45)).toBe('degrading');
   });
 
-  it('classifies red (61-100)', () => {
-    expect(getRotLevel(61)).toBe('red');
-    expect(getRotLevel(80)).toBe('red');
-    expect(getRotLevel(100)).toBe('red');
+  it('classifies rotted (46+)', () => {
+    expect(getRotLevel(46)).toBe('rotted');
+    expect(getRotLevel(80)).toBe('rotted');
+    expect(getRotLevel(100)).toBe('rotted');
   });
 });
 
 describe('rot output formatting', () => {
-  it('returns null for green < 15', () => {
+  it('returns null for healthy', () => {
     const score: RotScore = {
-      contradictionScore: 0,
-      repetitionScore: 0,
+      violationScore: 0,
+      circularScore: 0,
+      repairLoopScore: 0,
+      qualityScore: 0,
       saturationScore: 0,
       combined: 10,
-      level: 'green',
+      level: 'healthy',
       turn: 5,
+      rotPoint: null,
     };
     expect(formatRotOutput(score)).toBeNull();
   });
 
-  it('returns suppressOutput for green >= 15', () => {
+  it('returns stderr warning for degrading', () => {
     const score: RotScore = {
-      contradictionScore: 10,
-      repetitionScore: 10,
-      saturationScore: 5,
-      combined: 20,
-      level: 'green',
-      turn: 10,
-    };
-    const output = formatRotOutput(score);
-    expect(output).not.toBeNull();
-    expect(output!.stdout).toContain('suppressOutput');
-    expect(output!.stderr).toBeUndefined();
-  });
-
-  it('returns stderr warning for yellow', () => {
-    const score: RotScore = {
-      contradictionScore: 30,
-      repetitionScore: 20,
-      saturationScore: 20,
-      combined: 47,
-      level: 'yellow',
+      violationScore: 30,
+      circularScore: 20,
+      repairLoopScore: 0,
+      qualityScore: 10,
+      saturationScore: 10,
+      combined: 35,
+      level: 'degrading',
       turn: 20,
+      rotPoint: 15,
     };
     const output = formatRotOutput(score);
     expect(output).not.toBeNull();
-    expect(output!.stderr).toContain('47%');
+    expect(output!.stderr).toContain('35%');
     expect(output!.stderr).toContain('degrading');
   });
 
-  it('returns stderr warning with handoff suggestion for red', () => {
+  it('returns stderr warning with fix suggestion for rotted', () => {
     const score: RotScore = {
-      contradictionScore: 50,
-      repetitionScore: 40,
-      saturationScore: 30,
-      combined: 73,
-      level: 'red',
+      violationScore: 50,
+      circularScore: 40,
+      repairLoopScore: 40,
+      qualityScore: 20,
+      saturationScore: 10,
+      combined: 67,
+      level: 'rotted',
       turn: 40,
+      rotPoint: 31,
     };
     const output = formatRotOutput(score);
     expect(output).not.toBeNull();
-    expect(output!.stderr).toContain('73%');
-    expect(output!.stderr).toContain('openrot handoff');
+    expect(output!.stderr).toContain('67%');
+    expect(output!.stderr).toContain('openrot fix');
   });
 });

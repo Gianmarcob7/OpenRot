@@ -1,13 +1,10 @@
 import chalk from 'chalk';
-import { getDb, saveToFile } from '../db/index.js';
-import { SessionStore } from '../db/sessions.js';
-import { DecisionStore } from '../db/decisions.js';
-import { WarningStore } from '../db/warnings.js';
+import { loadState, listStates } from '../state/index.js';
 import { loadConfig, getConfigPath } from '../config/index.js';
 import { detectEnvironment } from '../config/detect.js';
 
 /**
- * openrot status — show current session info, decisions, warnings, and config.
+ * openrot status — show current session health, recent scores, and config.
  */
 export async function runStatus(): Promise<void> {
   console.log(chalk.bold('\n📊 OpenRot — Status\n'));
@@ -27,45 +24,48 @@ export async function runStatus(): Promise<void> {
 
   console.log('');
 
-  // Database
+  // Session states
   try {
-    const db = await getDb();
-    const sessionStore = new SessionStore(db, saveToFile);
-    const decisionStore = new DecisionStore(db, saveToFile);
-    const warningStore = new WarningStore(db, saveToFile);
+    const states = listStates();
+    console.log(chalk.bold('Recent Sessions:'));
 
-    const sessions = sessionStore.getAll();
-
-    console.log(chalk.bold('Sessions:'));
-    if (sessions.length === 0) {
-      console.log(chalk.dim('  No sessions found.'));
+    if (states.length === 0) {
+      console.log(chalk.dim('  No active sessions found.'));
     } else {
-      const recentSessions = sessions.slice(0, 5);
-      for (const session of recentSessions) {
-        const decisions = decisionStore.getBySessionId(session.id);
-        const warnings = warningStore.getBySessionId(session.id);
-        const age = Math.round((Date.now() - session.createdAt) / 60000);
+      const recentStates = states.slice(0, 5);
+      for (const sessionId of recentStates) {
+        const state = loadState(sessionId);
+        const age = Math.round((Date.now() - state.startedAt) / 60000);
+        const lastScore = state.turnScores[state.turnScores.length - 1];
+        const scoreStr = lastScore ? `score: ${lastScore.score}%` : 'no score yet';
 
-        console.log(`  ${chalk.dim(session.id.slice(0, 8))} — ${age}min ago`);
-        console.log(`    Decisions: ${decisions.length}, Warnings: ${warnings.length}`);
+        let icon = '✅';
+        if (lastScore && lastScore.score > 45) icon = '🔴';
+        else if (lastScore && lastScore.score > 20) icon = '⚠️';
 
-        if (decisions.length > 0) {
-          const recent = decisions.slice(-3);
+        console.log(`  ${icon} ${chalk.bold(sessionId.slice(0, 8))} — ${age}min ago, ${state.lastTurn} turns, ${scoreStr}`);
+
+        if (state.decisions.length > 0) {
+          const recent = state.decisions.slice(-3);
           for (const d of recent) {
-            console.log(`    ${chalk.dim(`[Turn ${d.turn}]`)} ${d.commitment}`);
+            console.log(chalk.dim(`     [Turn ${d.turn}] ${d.commitment}`));
           }
-          if (decisions.length > 3) {
-            console.log(chalk.dim(`    ... and ${decisions.length - 3} more`));
+          if (state.decisions.length > 3) {
+            console.log(chalk.dim(`     ... and ${state.decisions.length - 3} more`));
           }
+        }
+
+        if (state.rotPoint) {
+          console.log(chalk.red(`     Rot detected at turn ${state.rotPoint}`));
         }
       }
 
-      if (sessions.length > 5) {
-        console.log(chalk.dim(`\n  ... and ${sessions.length - 5} more sessions`));
+      if (states.length > 5) {
+        console.log(chalk.dim(`\n  ... and ${states.length - 5} more sessions`));
       }
     }
   } catch {
-    console.log(chalk.yellow('  ⚠️  Could not read database'));
+    console.log(chalk.yellow('  ⚠️  Could not read session states'));
   }
 
   console.log('');
@@ -77,7 +77,8 @@ export async function runStatus(): Promise<void> {
     if (env.editors.claudeCode) console.log(chalk.green('  ✅ Claude Code'));
     if (env.editors.cursor) console.log(chalk.green('  ✅ Cursor'));
     if (env.editors.vscode) console.log(chalk.green('  ✅ VS Code'));
-    if (!env.editors.claudeCode && !env.editors.cursor && !env.editors.vscode) {
+    if (env.editors.antigravity) console.log(chalk.green('  ✅ Google Antigravity'));
+    if (!env.editors.claudeCode && !env.editors.cursor && !env.editors.vscode && !env.editors.antigravity) {
       console.log(chalk.dim('  (none detected)'));
     }
   } catch {

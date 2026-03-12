@@ -1,90 +1,40 @@
 import type { Database } from 'sql.js';
 import type { RotScore, RotLevel, TranscriptMessage } from '../types.js';
-import { scoreContradictions } from './contradictions.js';
-import { scoreRepetitionFast } from './repetition.js';
-import { scoreSaturation } from './saturation.js';
-import { getLastAssistantResponses, countTurns } from '../transcript/index.js';
+import { analyzeTranscript, getRotLevel } from '../detect/index.js';
 import { v4 as uuidv4 } from 'uuid';
 
-const SIGNAL_WEIGHTS = {
-  contradiction: 0.4,
-  repetition: 0.3,
-  saturation: 0.3,
-};
-
 /**
- * Compute the combined rot score from all three signals.
- * Uses fast (non-embedding) repetition by default for <5s execution.
+ * Compute the combined rot score using the new 5-signal detection engine.
+ * This is a compatibility wrapper for code that still calls computeRotScore.
  */
 export function computeRotScore(
-  db: Database,
-  sessionId: string,
+  _db: Database,
+  _sessionId: string,
   messages: TranscriptMessage[],
 ): RotScore {
-  const turn = countTurns(messages);
-
-  // Signal A: Decision contradiction rate (40%)
-  const contradictionScore = scoreContradictions(db, sessionId);
-
-  // Signal B: Self-repetition (30%) — use fast mode for hook speed
-  const recentResponses = getLastAssistantResponses(messages, 5);
-  const repetitionScore = scoreRepetitionFast(recentResponses);
-
-  // Signal C: Context saturation (30%)
-  const saturationScore = scoreSaturation(messages);
-
-  // Combined weighted score
-  const combined = Math.round(
-    contradictionScore * SIGNAL_WEIGHTS.contradiction +
-    repetitionScore * SIGNAL_WEIGHTS.repetition +
-    saturationScore * SIGNAL_WEIGHTS.saturation,
-  );
-
-  const level = getRotLevel(combined);
-
-  return {
-    contradictionScore: Math.round(contradictionScore),
-    repetitionScore: Math.round(repetitionScore),
-    saturationScore: Math.round(saturationScore),
-    combined,
-    level,
-    turn,
-  };
-}
-
-/**
- * Determine rot level from combined score.
- */
-export function getRotLevel(score: number): RotLevel {
-  if (score <= 30) return 'green';
-  if (score <= 60) return 'yellow';
-  return 'red';
+  const result = analyzeTranscript(messages);
+  return result.score;
 }
 
 /**
  * Format a rot score for Stop hook output.
- * Returns null if no output should be shown (green < 15).
+ * Returns null if no output should be shown (healthy).
  */
 export function formatRotOutput(score: RotScore): { stderr?: string; stdout?: string } | null {
-  if (score.level === 'green' && score.combined < 15) {
-    // Silent — no output
+  if (score.level === 'healthy') {
     return null;
   }
 
-  if (score.level === 'green') {
-    // Suppress output but log
-    return { stdout: JSON.stringify({ suppressOutput: true }) };
-  }
-
-  if (score.level === 'yellow') {
+  if (score.level === 'degrading') {
     return {
-      stderr: `⚠️ OpenRot: Session health ${score.combined}% — quality may be degrading`,
+      stderr: `⚠️ OpenRot: Session degrading (${score.combined}%) — quality may be dropping`,
     };
   }
 
-  // Red
+  // Rotted
+  const rotInfo = score.rotPoint ? ` — quality dropped at turn ${score.rotPoint}` : '';
   return {
-    stderr: `🔴 OpenRot: Session health ${score.combined}% — output unreliable\n   Run 'openrot handoff' for a fresh start with full context preserved`,
+    stderr: `🔴 OpenRot: Session rotted (${score.combined}%)${rotInfo}\n   Run 'openrot fix' for a fresh start with full context preserved`,
   };
 }
 
@@ -105,8 +55,8 @@ export function saveRotScore(
         uuidv4(),
         sessionId,
         score.turn,
-        score.contradictionScore,
-        score.repetitionScore,
+        score.violationScore,
+        score.circularScore + score.repairLoopScore,
         score.saturationScore,
         score.combined,
         Date.now(),
@@ -134,15 +84,22 @@ export function getLatestRotScore(db: Database, sessionId: string): RotScore | n
     const row: Record<string, unknown> = {};
     cols.forEach((c, i) => { row[c] = vals[i]; });
 
+    const combined = row.combined_score as number;
+
     return {
-      contradictionScore: row.contradiction_score as number,
-      repetitionScore: row.repetition_score as number,
+      violationScore: row.contradiction_score as number,
+      circularScore: 0,
+      repairLoopScore: 0,
+      qualityScore: 0,
       saturationScore: row.saturation_score as number,
-      combined: row.combined_score as number,
-      level: getRotLevel(row.combined_score as number),
+      combined,
+      level: getRotLevel(combined),
       turn: row.turn as number,
+      rotPoint: null,
     };
   } catch {
     return null;
   }
 }
+
+export { getRotLevel };

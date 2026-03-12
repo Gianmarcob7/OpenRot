@@ -1,99 +1,84 @@
 import type { HookInput } from '../types.js';
-import { getDb, saveToFile } from '../db/index.js';
-import { parseTranscript } from '../transcript/index.js';
-import { computeRotScore, formatRotOutput, saveRotScore } from '../scoring/index.js';
-import { extractDecisions } from '../extract/index.js';
-import { DecisionStore } from '../db/decisions.js';
-import { getAssistantMessages, countTurns } from '../transcript/index.js';
+import { tailTranscript } from '../transcript/tail.js';
+import { countTurns } from '../transcript/index.js';
+import { analyzeTranscript, getRotLevel } from '../detect/index.js';
+import { loadState, saveState } from '../state/index.js';
 import { getLogger } from '../logger.js';
 
 const logger = getLogger();
 
-// Track last score output to avoid repeating warnings on consecutive turns
-let lastOutputSessionId: string | null = null;
-let lastOutputLevel: string | null = null;
-
 /**
  * Stop hook handler — called after every Claude Code response.
  * Reads JSON from stdin, scores the session, outputs warnings.
- * MUST complete in <5 seconds.
+ * MUST complete in <5 seconds. Uses tail-reading + cached state.
  */
 export async function handleAnalyze(hookInput: HookInput): Promise<void> {
-  try {
-    const { session_id, transcript_path, cwd } = hookInput;
+  const startTime = Date.now();
 
-    // Parse transcript
-    const messages = parseTranscript(transcript_path);
+  try {
+    const { session_id, transcript_path } = hookInput;
+
+    // Tail-read only last 20 turns for speed
+    const messages = tailTranscript(transcript_path, 40);
     if (messages.length === 0) return;
 
-    // Initialize database
-    const db = await getDb();
-    const turn = countTurns(messages);
+    const totalTurns = countTurns(messages);
 
-    // Extract decisions from last assistant message
-    try {
-      const assistantTexts = getAssistantMessages(messages);
-      const lastResponse = assistantTexts[assistantTexts.length - 1];
-      if (lastResponse) {
-        const decisionStore = new DecisionStore(db, saveToFile);
-        const extractions = await extractDecisions(lastResponse, {
-          mode: 'regex',
-          modelClient: null,
-        });
+    // Load running state
+    const state = loadState(session_id);
 
-        for (const extraction of extractions) {
-          if (!decisionStore.isDuplicate(session_id, extraction.commitment)) {
-            decisionStore.create(session_id, turn, extraction);
-          }
-        }
-      }
-    } catch {
-      // Decision extraction failed — continue with scoring
+    // Skip if we already analyzed this turn
+    if (state.lastTurn >= totalTurns && totalTurns > 0) return;
+
+    // Analyze the recent messages
+    const result = analyzeTranscript(messages);
+    const { score, signals } = result;
+
+    // Update state
+    state.lastTurn = totalTurns;
+    state.turnScores.push({ turn: totalTurns, score: score.combined });
+    if (score.rotPoint && !state.rotPoint) {
+      state.rotPoint = score.rotPoint;
     }
 
-    // Compute rot score
-    const score = computeRotScore(db, session_id, messages);
-
-    // Save to database
-    saveRotScore(db, session_id, score, saveToFile);
-
-    // Format output
-    const output = formatRotOutput(score);
-
-    if (!output) {
-      // Green, score < 15 — silent
+    // Bail if taking too long (safety valve)
+    if (Date.now() - startTime > 4000) {
+      saveState(state);
       return;
     }
 
-    // Avoid repeating the same warning level on consecutive turns
-    if (
-      lastOutputSessionId === session_id &&
-      lastOutputLevel === score.level &&
-      score.level !== 'red' // Always show red
-    ) {
+    saveState(state);
+
+    // Output based on level
+    if (score.level === 'healthy') {
+      // Silent
       return;
     }
 
-    lastOutputSessionId = session_id;
-    lastOutputLevel = score.level;
-
-    if (output.stdout) {
-      process.stdout.write(output.stdout);
+    if (score.level === 'degrading') {
+      const topSignal = signals.filter((s) => s.score >= 40)[0];
+      const detail = topSignal ? ` — ${topSignal.description.toLowerCase()}` : '';
+      process.stderr.write(
+        `⚠️ OpenRot: Session degrading (${score.combined}%)${detail}\n`,
+      );
     }
 
-    if (output.stderr) {
-      process.stderr.write(output.stderr + '\n');
+    if (score.level === 'rotted') {
+      const rotInfo = score.rotPoint ? ` — quality dropped at turn ${score.rotPoint}` : '';
+      process.stderr.write(
+        `🔴 OpenRot: Session rotted (${score.combined}%)${rotInfo}. Run: openrot fix\n`,
+      );
     }
 
     logger.info('Rot score computed', {
       sessionId: session_id,
-      turn,
+      turn: totalTurns,
       score: score.combined,
       level: score.level,
+      elapsed: Date.now() - startTime,
     });
   } catch (error) {
     logger.error('Analyze hook error', { error: String(error) });
-    // Fail silently — never crash, never exit non-zero
   }
 }
 
@@ -104,7 +89,6 @@ export function readHookInput(): Promise<HookInput> {
   return new Promise((resolve, reject) => {
     let data = '';
 
-    // Set a timeout to avoid hanging forever
     const timeout = setTimeout(() => {
       reject(new Error('Timeout reading stdin'));
     }, 3000);
