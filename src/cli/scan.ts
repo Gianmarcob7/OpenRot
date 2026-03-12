@@ -4,14 +4,15 @@ import path from 'path';
 import os from 'os';
 import { parseTranscript } from '../transcript/index.js';
 import { findTranscripts } from '../transcript/tail.js';
-import { analyzeTranscript } from '../detect/index.js';
+import { analyzeTranscript, SIGNAL_WEIGHTS } from '../detect/index.js';
+import type { ViolationSignals } from '../detect/violations.js';
 import type { DetectionResult, DetectionSignal, RotLevel } from '../types.js';
 
 /**
  * openrot scan [path] — offline transcript analysis with beautiful terminal output.
  * This is the "first run" experience and the README GIF demo.
  */
-export async function runScan(options: { path?: string }): Promise<void> {
+export async function runScan(options: { path?: string; verbose?: boolean }): Promise<void> {
   const targetPath = resolveScanPath(options.path);
 
   if (!targetPath) {
@@ -38,9 +39,16 @@ export async function runScan(options: { path?: string }): Promise<void> {
 
   if (transcripts.length === 1) {
     const result = analyzeFile(transcripts[0]);
-    if (result) renderSingleSession(result.result, result.sessionId, result.file);
+    if (result) {
+      renderSingleSession(result.result, result.sessionId, result.file);
+      if (options.verbose) renderVerbose(result.result);
+    }
   } else {
     renderMultiSession(transcripts);
+    if (options.verbose) {
+      console.log(chalk.dim('  (--verbose only works with single file scans)'));
+      console.log('');
+    }
   }
 }
 
@@ -49,7 +57,6 @@ function resolveScanPath(input?: string): string | null {
     const resolved = path.resolve(input);
     if (fs.existsSync(resolved)) return resolved;
 
-    // Try expanding ~ on Windows
     if (input.startsWith('~')) {
       const expanded = path.join(os.homedir(), input.slice(1));
       if (fs.existsSync(expanded)) return expanded;
@@ -57,7 +64,6 @@ function resolveScanPath(input?: string): string | null {
     return null;
   }
 
-  // Default: look for Claude Code transcripts
   const claudeDir = path.join(os.homedir(), '.claude', 'projects');
   if (fs.existsSync(claudeDir)) return claudeDir;
 
@@ -86,7 +92,6 @@ function analyzeFile(file: string): AnalysisResult | null {
 function renderSingleSession(result: DetectionResult, sessionId: string, file: string): void {
   const { score, signals, totalTurns, sessionDuration } = result;
 
-  // Header box
   const levelColor = getLevelColor(score.level);
   const qualityBar = renderQualityBar(score.combined);
   const levelLabel = score.level.toUpperCase();
@@ -97,14 +102,12 @@ function renderSingleSession(result: DetectionResult, sessionId: string, file: s
   console.log(chalk.dim('│') + `  Quality: ${qualityBar} ${levelColor(levelLabel)}` + ' '.repeat(Math.max(1, 7 - levelLabel.length)) + chalk.dim('│'));
   console.log(chalk.dim('└─────────────────────────────────────────────────┘'));
 
-  // Timeline
   if (totalTurns > 0) {
     console.log('');
     console.log(chalk.bold('Timeline:'));
     renderTimeline(totalTurns, score.rotPoint);
   }
 
-  // Signals
   if (signals.length > 0) {
     console.log('');
     console.log(chalk.bold('Signals:'));
@@ -120,7 +123,6 @@ function renderSingleSession(result: DetectionResult, sessionId: string, file: s
     }
   }
 
-  // Footer
   console.log('');
   console.log(chalk.bold('━'.repeat(49)));
 
@@ -139,12 +141,103 @@ function renderSingleSession(result: DetectionResult, sessionId: string, file: s
   console.log('');
 }
 
+/**
+ * Render verbose output: decisions extracted, updates, active decisions,
+ * per-signal scores and reasoning.
+ */
+function renderVerbose(result: DetectionResult): void {
+  const { score, signals } = result;
+
+  console.log(chalk.bold.cyan('─── Verbose Output ────────────────────────────────'));
+  console.log('');
+
+  // Per-signal score breakdown
+  console.log(chalk.bold('Signal Scores:'));
+  console.log(`  Violations:      ${formatSignalScore(score.violationScore)} (weight: ${SIGNAL_WEIGHTS.violation * 100}%)`);
+  console.log(`  Circular:        ${formatSignalScore(score.circularScore)} (weight: ${SIGNAL_WEIGHTS.circular * 100}%)`);
+  console.log(`  Repair loops:    ${formatSignalScore(score.repairLoopScore)} (weight: ${SIGNAL_WEIGHTS.repairLoop * 100}%)`);
+  console.log(`  Quality:         ${formatSignalScore(score.qualityScore)} (weight: ${SIGNAL_WEIGHTS.quality * 100}%)`);
+  console.log(`  Saturation:      ${formatSignalScore(score.saturationScore)} (weight: ${SIGNAL_WEIGHTS.saturation * 100}%)`);
+  console.log(`  ${chalk.bold('Combined:')}        ${formatSignalScore(score.combined)}`);
+  console.log('');
+
+  // Decision tracking log from violations detector
+  const violationSignals = signals as ViolationSignals;
+  const verboseLog = violationSignals.__verboseLog;
+  const decisions = violationSignals.__decisions;
+
+  if (verboseLog && verboseLog.length > 0) {
+    console.log(chalk.bold('Decision Tracking:'));
+    for (const entry of verboseLog) {
+      const turnStr = chalk.dim(`Turn ${String(entry.turn).padStart(3)}`);
+      switch (entry.event) {
+        case 'decision-added':
+          console.log(`  ${chalk.green('+')} ${turnStr}  ${entry.detail}`);
+          break;
+        case 'decision-updated':
+          console.log(`  ${chalk.yellow('~')} ${turnStr}  ${entry.detail}`);
+          break;
+        case 'violation':
+          console.log(`  ${chalk.red('!')} ${turnStr}  ${entry.detail}`);
+          break;
+      }
+    }
+    console.log('');
+  }
+
+  if (decisions && decisions.length > 0) {
+    const active = decisions.filter((d) => !d.supersededAt);
+    const superseded = decisions.filter((d) => d.supersededAt);
+
+    console.log(chalk.bold('Active Decisions:'));
+    if (active.length === 0) {
+      console.log(chalk.dim('  (none)'));
+    } else {
+      for (const d of active) {
+        console.log(`  ${chalk.green('●')} ${chalk.dim(`Turn ${d.turn}`)}  ${d.commitment} ${chalk.dim(`(from ${d.source})`)}`);
+      }
+    }
+
+    if (superseded.length > 0) {
+      console.log('');
+      console.log(chalk.bold('Superseded Decisions:'));
+      for (const d of superseded) {
+        console.log(`  ${chalk.dim('○')} ${chalk.dim(`Turn ${d.turn}`)}  ${chalk.strikethrough(d.commitment)} ${chalk.dim(`(replaced at turn ${d.supersededAt})`)}`);
+      }
+    }
+    console.log('');
+  }
+
+  // All signals with full detail
+  if (signals.length > 0) {
+    console.log(chalk.bold('All Signals (unfiltered):'));
+    for (const signal of signals) {
+      const icon = signal.score >= 70 ? '🔴' :
+                   signal.score >= 40 ? '⚠️ ' : chalk.dim('·');
+      console.log(`  ${icon} ${chalk.dim(`Turn ${String(signal.turn).padStart(3)}`)}  [${signal.type}] score=${signal.score}  ${signal.description}`);
+      if (signal.details) {
+        console.log(`           ${chalk.dim(signal.details)}`);
+      }
+    }
+    console.log('');
+  }
+
+  console.log(chalk.bold.cyan('───────────────────────────────────────────────────'));
+  console.log('');
+}
+
+function formatSignalScore(score: number): string {
+  const padded = String(score).padStart(3);
+  if (score <= 20) return chalk.green(padded);
+  if (score <= 45) return chalk.yellow(padded);
+  return chalk.red(padded);
+}
+
 function renderMultiSession(transcripts: string[]): void {
-  // Sort by modification time (newest first)
   const sorted = transcripts
     .map((f) => ({ file: f, mtime: fs.statSync(f).mtimeMs }))
     .sort((a, b) => b.mtime - a.mtime)
-    .slice(0, 20); // Limit to 20 most recent
+    .slice(0, 20);
 
   console.log(chalk.bold(`OpenRot — Scanning ${sorted.length} session${sorted.length > 1 ? 's' : ''}`));
   console.log(chalk.bold('━'.repeat(60)));
@@ -215,7 +308,6 @@ function renderTimeline(totalTurns: number, rotPoint: number | null): void {
 
   console.log(`  ${timeline}`);
 
-  // Labels
   const startLabel = 'Turn 1';
   const endLabel = `${totalTurns}`;
   if (rotPoint) {

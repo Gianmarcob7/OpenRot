@@ -22,24 +22,53 @@ describe('violation detection (Signal 1)', () => {
     expect(signals).toEqual([]);
   });
 
-  it('detects use vs avoid contradiction', () => {
-    // Need enough turns with extractable decisions in both halves
+  it('does NOT flag when user changes their mind', () => {
+    // User says "use Tailwind" then later says "don't use Tailwind" — that's an update, not a violation
     const content = makeTranscript([
-      { user: 'Style approach?', assistant: "Let's use Tailwind for styling." },
-      { user: 'DB?', assistant: "Let's use PostgreSQL for the database." },
-      { user: 'Add a card', assistant: "We're using Tailwind classes for all components." },
-      { user: 'Buttons', assistant: "Always use Tailwind utilities for styling." },
-      // --- midpoint ---
-      { user: 'Fix the layout', assistant: "Don't use Tailwind for this section." },
-      { user: 'Sidebar', assistant: "Never use Tailwind going forward." },
-      { user: 'Footer', assistant: "Don't use PostgreSQL. Let's use SQLite for the database." },
-      { user: 'Final', assistant: "Never use Tailwind in this project." },
+      { user: "Let's use Tailwind for styling.", assistant: "Sure, I'll use Tailwind CSS." },
+      { user: 'Build the header.', assistant: 'Here is the header with Tailwind classes.' },
+      { user: 'Build the sidebar.', assistant: 'Here is the sidebar with Tailwind.' },
+      { user: "Actually, don't use Tailwind anymore. Switch to plain CSS.", assistant: "Got it, switching to plain CSS." },
+      { user: 'Build the footer.', assistant: 'Here is the footer with plain CSS.' },
     ]);
     const messages = parseTranscriptContent(content);
     const turns = parseAllTurns(messages);
     const signals = detectViolations(turns);
-    expect(signals.length).toBeGreaterThan(0);
-    expect(signals[0].type).toBe('violation');
+    const violations = signals.filter((s) => s.type === 'violation');
+    expect(violations).toEqual([]);
+  });
+
+  it('flags when AI contradicts active user decision on its own', () => {
+    // User says "use Tailwind" and never changes mind, but AI starts saying "don't use Tailwind"
+    const content = makeTranscript([
+      { user: "Let's use Tailwind for styling.", assistant: "Sure, I'll set up Tailwind CSS." },
+      { user: 'Build the card component.', assistant: 'Here is the card with Tailwind.' },
+      { user: 'Build the header.', assistant: 'Here is the header with Tailwind utilities.' },
+      // AI contradicts on its own — user said nothing about changing
+      { user: 'Build the form.', assistant: "Don't use Tailwind for the form. I'll use inline styles instead." },
+    ]);
+    const messages = parseTranscriptContent(content);
+    const turns = parseAllTurns(messages);
+    const signals = detectViolations(turns);
+    const violations = signals.filter((s) => s.type === 'violation');
+    expect(violations.length).toBeGreaterThan(0);
+    expect(violations[0].details).toContain('Tailwind');
+  });
+
+  it('user decision update supersedes old decision', () => {
+    // User says "use PostgreSQL", then later says "use SQLite for the database"
+    // AI follows the new decision — no violation
+    const content = makeTranscript([
+      { user: "Let's use PostgreSQL for the database.", assistant: "Sure, setting up PostgreSQL." },
+      { user: 'Create the schema.', assistant: 'Here is the PostgreSQL schema.' },
+      { user: 'Actually, use SQLite for the database.', assistant: "Got it, switching to SQLite." },
+      { user: 'Create the queries.', assistant: "Here are the SQLite queries." },
+    ]);
+    const messages = parseTranscriptContent(content);
+    const turns = parseAllTurns(messages);
+    const signals = detectViolations(turns);
+    const violations = signals.filter((s) => s.type === 'violation');
+    expect(violations).toEqual([]);
   });
 
   it('scores violations correctly', () => {

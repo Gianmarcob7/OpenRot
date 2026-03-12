@@ -67,9 +67,10 @@ program
   .command('scan')
   .description('Analyze session transcript(s) for context degradation')
   .argument('[path]', 'Path to transcript file or directory')
-  .action(async (scanPath) => {
+  .option('--verbose', 'Show detailed signal breakdown, decision tracking, and scoring')
+  .action(async (scanPath, options) => {
     try {
-      await runScan({ path: scanPath });
+      await runScan({ path: scanPath, verbose: options.verbose });
     } catch (error) {
       console.error(chalk.red('Error:'), error);
       process.exit(1);

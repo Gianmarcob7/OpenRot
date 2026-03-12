@@ -6153,66 +6153,116 @@ function countHedgingPhrases(text) {
 init_esm_shims();
 function detectViolations(turns) {
   const signals2 = [];
-  const assistantTurns = turns.filter((t) => t.type === "assistant");
-  if (assistantTurns.length < 4) return signals2;
-  const midpoint = Math.floor(assistantTurns.length / 2);
-  const earlyTurns = assistantTurns.slice(0, midpoint);
-  const lateTurns = assistantTurns.slice(midpoint);
-  const decisions = [];
-  for (const turn of earlyTurns) {
+  if (turns.length < 6) return signals2;
+  const activeDecisions = [];
+  const log = [];
+  for (const turn of turns) {
     const extracted = extractWithRegex(turn.text);
-    for (const e of extracted) {
-      decisions.push({ turn: turn.index, commitment: e.commitment, type: e.type });
-    }
-  }
-  if (decisions.length === 0) return signals2;
-  for (const turn of lateTurns) {
-    const lateDecisions = extractWithRegex(turn.text);
-    for (const late of lateDecisions) {
-      for (const early of decisions) {
-        if (isContradiction(early.commitment, late.commitment)) {
-          signals2.push({
-            type: "violation",
+    if (extracted.length === 0) continue;
+    if (turn.type === "user") {
+      for (const e of extracted) {
+        const superseded = findContradictedDecision(activeDecisions, e.commitment);
+        if (superseded) {
+          superseded.supersededAt = turn.index;
+          log.push({
             turn: turn.index,
-            score: 80,
-            description: "Instruction violation",
-            details: `Contradicts "${early.commitment}" (established at turn ${early.turn})`
+            event: "decision-updated",
+            detail: `User changed "${superseded.commitment}" \u2192 "${e.commitment}"`
           });
+        }
+        activeDecisions.push({
+          turn: turn.index,
+          commitment: e.commitment,
+          type: e.type,
+          source: "user"
+        });
+        log.push({
+          turn: turn.index,
+          event: "decision-added",
+          detail: `User: "${e.commitment}"`
+        });
+      }
+    } else {
+      for (const e of extracted) {
+        const currentActive = activeDecisions.filter((d) => !d.supersededAt);
+        const violated = findContradictedDecision(currentActive, e.commitment);
+        if (violated) {
+          const recentUserTurns = turns.filter((t) => t.type === "user" && t.index < turn.index).slice(-2);
+          const userAskedForChange = recentUserTurns.some((ut) => {
+            const userExtractions = extractWithRegex(ut.text);
+            return userExtractions.some((ue) => isAligned(ue.commitment, e.commitment));
+          });
+          if (!userAskedForChange) {
+            signals2.push({
+              type: "violation",
+              turn: turn.index,
+              score: 80,
+              description: "Instruction violation",
+              details: `AI contradicted "${violated.commitment}" (user decided at turn ${violated.turn})`
+            });
+            log.push({
+              turn: turn.index,
+              event: "violation",
+              detail: `AI said "${e.commitment}" \u2014 contradicts active decision "${violated.commitment}" (turn ${violated.turn})`
+            });
+          }
+        }
+        const currentActiveForDirect = activeDecisions.filter((d) => !d.supersededAt);
+        for (const decision of currentActiveForDirect) {
+          const violation = checkDirectViolation(turn.text, decision.commitment);
+          if (violation) {
+            signals2.push({
+              type: "violation",
+              turn: turn.index,
+              score: 70,
+              description: "Instruction violation",
+              details: `${violation} (user decided "${decision.commitment}" at turn ${decision.turn})`
+            });
+          }
         }
       }
     }
-    for (const decision of decisions) {
-      const violation = checkDirectViolation(turn.text, decision.commitment);
-      if (violation) {
-        signals2.push({
-          type: "violation",
-          turn: turn.index,
-          score: 70,
-          description: "Instruction violation",
-          details: `${violation} (decided "${decision.commitment}" at turn ${decision.turn})`
-        });
-      }
-    }
   }
-  return deduplicateSignals(signals2);
+  const result = deduplicateSignals(signals2);
+  result.__verboseLog = log;
+  result.__decisions = activeDecisions;
+  return result;
 }
-function isContradiction(early, late) {
-  const earlyLower = early.toLowerCase();
-  const lateLower = late.toLowerCase();
-  const useMatch = earlyLower.match(/^(?:use|only use|stick with)\s+(.+)/);
-  const avoidMatch = lateLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+function findContradictedDecision(decisions, newCommitment) {
+  for (const d of decisions) {
+    if (d.supersededAt) continue;
+    if (isContradiction(d.commitment, newCommitment)) return d;
+  }
+  return void 0;
+}
+function isAligned(a, b) {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+  const aUse = aLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  const bUse = bLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  if (aUse && bUse) return hasSignificantOverlap(aUse[1], bUse[1]);
+  const aAvoid = aLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  const bAvoid = bLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  if (aAvoid && bAvoid) return hasSignificantOverlap(aAvoid[1], bAvoid[1]);
+  return false;
+}
+function isContradiction(existing, incoming) {
+  const existingLower = existing.toLowerCase();
+  const incomingLower = incoming.toLowerCase();
+  const useMatch = existingLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  const avoidMatch = incomingLower.match(/^(?:avoid|never use|don't use|no)\s+(.+)/);
   if (useMatch && avoidMatch) {
     return hasSignificantOverlap(useMatch[1], avoidMatch[1]);
   }
-  const earlyAvoid = earlyLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
-  const lateUse = lateLower.match(/^(?:use|only use|stick with)\s+(.+)/);
-  if (earlyAvoid && lateUse) {
-    return hasSignificantOverlap(earlyAvoid[1], lateUse[1]);
+  const existingAvoid = existingLower.match(/^(?:avoid|never use|don't use|no)\s+(.+)/);
+  const incomingUse = incomingLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  if (existingAvoid && incomingUse) {
+    return hasSignificantOverlap(existingAvoid[1], incomingUse[1]);
   }
-  const earlyUse2 = earlyLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
-  const lateUse2 = lateLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
-  if (earlyUse2 && lateUse2 && earlyUse2[2] && lateUse2[2]) {
-    if (hasSignificantOverlap(earlyUse2[2], lateUse2[2]) && !hasSignificantOverlap(earlyUse2[1], lateUse2[1])) {
+  const existingUse2 = existingLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  const incomingUse2 = incomingLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  if (existingUse2 && incomingUse2 && existingUse2[2] && incomingUse2[2]) {
+    if (hasSignificantOverlap(existingUse2[2], incomingUse2[2]) && !hasSignificantOverlap(existingUse2[1], incomingUse2[1])) {
       return true;
     }
   }
@@ -6229,15 +6279,11 @@ function hasSignificantOverlap(a, b) {
   return overlap / Math.min(wordsA.size, wordsB.size) > 0.5;
 }
 function checkDirectViolation(text, decision) {
-  const lower = text.toLowerCase();
   const decLower = decision.toLowerCase();
-  if (decLower.includes("tailwind") && /style\s*=\s*\{/.test(text)) {
+  if (decLower.includes("tailwind") && !decLower.includes("avoid") && /style\s*=\s*\{/.test(text)) {
     return "Used inline styles";
   }
-  if (decLower.includes("inline style") && decLower.includes("avoid") && /style\s*=\s*\{/.test(text)) {
-    return "Used inline styles";
-  }
-  if (decLower.includes("typescript") && /require\s*\(/.test(text) && !lower.includes("import")) {
+  if (decLower.includes("typescript") && !decLower.includes("avoid") && /require\s*\(/.test(text) && !text.toLowerCase().includes("import")) {
     return "Used require() instead of import";
   }
   return null;
@@ -6861,9 +6907,16 @@ async function runScan(options) {
   console.log("");
   if (transcripts.length === 1) {
     const result = analyzeFile(transcripts[0]);
-    if (result) renderSingleSession(result.result, result.sessionId, result.file);
+    if (result) {
+      renderSingleSession(result.result, result.sessionId, result.file);
+      if (options.verbose) renderVerbose(result.result);
+    }
   } else {
     renderMultiSession(transcripts);
+    if (options.verbose) {
+      console.log(source_default.dim("  (--verbose only works with single file scans)"));
+      console.log("");
+    }
   }
 }
 function resolveScanPath(input) {
@@ -6933,6 +6986,79 @@ function renderSingleSession(result, sessionId, file) {
   }
   console.log(source_default.bold("\u2501".repeat(49)));
   console.log("");
+}
+function renderVerbose(result) {
+  const { score, signals: signals2 } = result;
+  console.log(source_default.bold.cyan("\u2500\u2500\u2500 Verbose Output \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+  console.log("");
+  console.log(source_default.bold("Signal Scores:"));
+  console.log(`  Violations:      ${formatSignalScore(score.violationScore)} (weight: ${SIGNAL_WEIGHTS.violation * 100}%)`);
+  console.log(`  Circular:        ${formatSignalScore(score.circularScore)} (weight: ${SIGNAL_WEIGHTS.circular * 100}%)`);
+  console.log(`  Repair loops:    ${formatSignalScore(score.repairLoopScore)} (weight: ${SIGNAL_WEIGHTS.repairLoop * 100}%)`);
+  console.log(`  Quality:         ${formatSignalScore(score.qualityScore)} (weight: ${SIGNAL_WEIGHTS.quality * 100}%)`);
+  console.log(`  Saturation:      ${formatSignalScore(score.saturationScore)} (weight: ${SIGNAL_WEIGHTS.saturation * 100}%)`);
+  console.log(`  ${source_default.bold("Combined:")}        ${formatSignalScore(score.combined)}`);
+  console.log("");
+  const violationSignals = signals2;
+  const verboseLog = violationSignals.__verboseLog;
+  const decisions = violationSignals.__decisions;
+  if (verboseLog && verboseLog.length > 0) {
+    console.log(source_default.bold("Decision Tracking:"));
+    for (const entry of verboseLog) {
+      const turnStr = source_default.dim(`Turn ${String(entry.turn).padStart(3)}`);
+      switch (entry.event) {
+        case "decision-added":
+          console.log(`  ${source_default.green("+")} ${turnStr}  ${entry.detail}`);
+          break;
+        case "decision-updated":
+          console.log(`  ${source_default.yellow("~")} ${turnStr}  ${entry.detail}`);
+          break;
+        case "violation":
+          console.log(`  ${source_default.red("!")} ${turnStr}  ${entry.detail}`);
+          break;
+      }
+    }
+    console.log("");
+  }
+  if (decisions && decisions.length > 0) {
+    const active = decisions.filter((d) => !d.supersededAt);
+    const superseded = decisions.filter((d) => d.supersededAt);
+    console.log(source_default.bold("Active Decisions:"));
+    if (active.length === 0) {
+      console.log(source_default.dim("  (none)"));
+    } else {
+      for (const d of active) {
+        console.log(`  ${source_default.green("\u25CF")} ${source_default.dim(`Turn ${d.turn}`)}  ${d.commitment} ${source_default.dim(`(from ${d.source})`)}`);
+      }
+    }
+    if (superseded.length > 0) {
+      console.log("");
+      console.log(source_default.bold("Superseded Decisions:"));
+      for (const d of superseded) {
+        console.log(`  ${source_default.dim("\u25CB")} ${source_default.dim(`Turn ${d.turn}`)}  ${source_default.strikethrough(d.commitment)} ${source_default.dim(`(replaced at turn ${d.supersededAt})`)}`);
+      }
+    }
+    console.log("");
+  }
+  if (signals2.length > 0) {
+    console.log(source_default.bold("All Signals (unfiltered):"));
+    for (const signal of signals2) {
+      const icon = signal.score >= 70 ? "\u{1F534}" : signal.score >= 40 ? "\u26A0\uFE0F " : source_default.dim("\xB7");
+      console.log(`  ${icon} ${source_default.dim(`Turn ${String(signal.turn).padStart(3)}`)}  [${signal.type}] score=${signal.score}  ${signal.description}`);
+      if (signal.details) {
+        console.log(`           ${source_default.dim(signal.details)}`);
+      }
+    }
+    console.log("");
+  }
+  console.log(source_default.bold.cyan("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"));
+  console.log("");
+}
+function formatSignalScore(score) {
+  const padded = String(score).padStart(3);
+  if (score <= 20) return source_default.green(padded);
+  if (score <= 45) return source_default.yellow(padded);
+  return source_default.red(padded);
 }
 function renderMultiSession(transcripts) {
   const sorted = transcripts.map((f) => ({ file: f, mtime: fs13.statSync(f).mtimeMs })).sort((a, b) => b.mtime - a.mtime).slice(0, 20);
@@ -7404,9 +7530,9 @@ program.command("pre-compact").description("PreCompact hook \u2014 save snapshot
   }
   process.exit(0);
 });
-program.command("scan").description("Analyze session transcript(s) for context degradation").argument("[path]", "Path to transcript file or directory").action(async (scanPath) => {
+program.command("scan").description("Analyze session transcript(s) for context degradation").argument("[path]", "Path to transcript file or directory").option("--verbose", "Show detailed signal breakdown, decision tracking, and scoring").action(async (scanPath, options) => {
   try {
-    await runScan({ path: scanPath });
+    await runScan({ path: scanPath, verbose: options.verbose });
   } catch (error) {
     console.error(source_default.red("Error:"), error);
     process.exit(1);

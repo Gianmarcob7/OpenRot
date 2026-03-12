@@ -1,92 +1,188 @@
 import type { DetectionSignal, ParsedTurn } from '../types.js';
 import { extractWithRegex } from '../extract/regex.js';
 
+interface ActiveDecision {
+  turn: number;
+  commitment: string;
+  type: string;
+  source: 'user' | 'assistant';
+  supersededAt?: number;
+}
+
 /**
  * Signal 1: Instruction Violations (weight: 25%)
  *
- * Detects when the AI contradicts decisions it established earlier.
- * Parse early turns for decisions (regex extraction), then check
- * later turns for violations of those decisions.
+ * Only flags when the AI contradicts an active decision ON ITS OWN.
+ * If the USER changes their mind, that updates the decision — not a violation.
+ *
+ * Logic:
+ * 1. Extract decisions from USER messages → active decision list
+ * 2. Also extract from assistant messages that CONFIRM user decisions
+ * 3. When user contradicts a prior decision → supersede the old one (not a violation)
+ * 4. When assistant contradicts an active decision without user instruction → violation
  */
 export function detectViolations(turns: ParsedTurn[]): DetectionSignal[] {
   const signals: DetectionSignal[] = [];
-  const assistantTurns = turns.filter((t) => t.type === 'assistant');
-  if (assistantTurns.length < 4) return signals;
+  if (turns.length < 6) return signals;
 
-  // Extract decisions from the first half of the session
-  const midpoint = Math.floor(assistantTurns.length / 2);
-  const earlyTurns = assistantTurns.slice(0, midpoint);
-  const lateTurns = assistantTurns.slice(midpoint);
+  const activeDecisions: ActiveDecision[] = [];
+  const log: VerboseEntry[] = [];
 
-  const decisions: Array<{ turn: number; commitment: string; type: string }> = [];
-  for (const turn of earlyTurns) {
+  // Walk through turns chronologically, maintaining a mutable decision list
+  for (const turn of turns) {
     const extracted = extractWithRegex(turn.text);
-    for (const e of extracted) {
-      decisions.push({ turn: turn.index, commitment: e.commitment, type: e.type });
-    }
-  }
+    if (extracted.length === 0) continue;
 
-  if (decisions.length === 0) return signals;
-
-  // Check late turns for contradictions of early decisions
-  for (const turn of lateTurns) {
-    const lateDecisions = extractWithRegex(turn.text);
-    for (const late of lateDecisions) {
-      for (const early of decisions) {
-        if (isContradiction(early.commitment, late.commitment)) {
-          signals.push({
-            type: 'violation',
+    if (turn.type === 'user') {
+      // User decisions: add or supersede
+      for (const e of extracted) {
+        const superseded = findContradictedDecision(activeDecisions, e.commitment);
+        if (superseded) {
+          superseded.supersededAt = turn.index;
+          log.push({
             turn: turn.index,
-            score: 80,
-            description: 'Instruction violation',
-            details: `Contradicts "${early.commitment}" (established at turn ${early.turn})`,
+            event: 'decision-updated',
+            detail: `User changed "${superseded.commitment}" → "${e.commitment}"`,
           });
+        }
+        activeDecisions.push({
+          turn: turn.index,
+          commitment: e.commitment,
+          type: e.type,
+          source: 'user',
+        });
+        log.push({
+          turn: turn.index,
+          event: 'decision-added',
+          detail: `User: "${e.commitment}"`,
+        });
+      }
+    } else {
+      // Assistant message: check if it contradicts any active user decision
+      for (const e of extracted) {
+        const currentActive = activeDecisions.filter((d) => !d.supersededAt);
+        const violated = findContradictedDecision(currentActive, e.commitment);
+
+        if (violated) {
+          // Check if a recent user message (within last 2 user turns) asked for this change
+          const recentUserTurns = turns
+            .filter((t) => t.type === 'user' && t.index < turn.index)
+            .slice(-2);
+          const userAskedForChange = recentUserTurns.some((ut) => {
+            const userExtractions = extractWithRegex(ut.text);
+            return userExtractions.some((ue) => isAligned(ue.commitment, e.commitment));
+          });
+
+          if (!userAskedForChange) {
+            signals.push({
+              type: 'violation',
+              turn: turn.index,
+              score: 80,
+              description: 'Instruction violation',
+              details: `AI contradicted "${violated.commitment}" (user decided at turn ${violated.turn})`,
+            });
+            log.push({
+              turn: turn.index,
+              event: 'violation',
+              detail: `AI said "${e.commitment}" — contradicts active decision "${violated.commitment}" (turn ${violated.turn})`,
+            });
+          }
+        }
+
+        // Also check direct code-level violations against active decisions
+        const currentActiveForDirect = activeDecisions.filter((d) => !d.supersededAt);
+        for (const decision of currentActiveForDirect) {
+          const violation = checkDirectViolation(turn.text, decision.commitment);
+          if (violation) {
+            signals.push({
+              type: 'violation',
+              turn: turn.index,
+              score: 70,
+              description: 'Instruction violation',
+              details: `${violation} (user decided "${decision.commitment}" at turn ${decision.turn})`,
+            });
+          }
         }
       }
     }
-
-    // Also check for direct keyword contradictions in the text
-    for (const decision of decisions) {
-      const violation = checkDirectViolation(turn.text, decision.commitment);
-      if (violation) {
-        signals.push({
-          type: 'violation',
-          turn: turn.index,
-          score: 70,
-          description: 'Instruction violation',
-          details: `${violation} (decided "${decision.commitment}" at turn ${decision.turn})`,
-        });
-      }
-    }
   }
 
-  return deduplicateSignals(signals);
+  // Attach verbose log for --verbose output
+  const result = deduplicateSignals(signals);
+  (result as ViolationSignals).__verboseLog = log;
+  (result as ViolationSignals).__decisions = activeDecisions;
+  return result;
 }
 
-function isContradiction(early: string, late: string): boolean {
-  const earlyLower = early.toLowerCase();
-  const lateLower = late.toLowerCase();
+export interface VerboseEntry {
+  turn: number;
+  event: 'decision-added' | 'decision-updated' | 'violation';
+  detail: string;
+}
 
-  // "use X" vs "avoid X" / "don't use X"
-  const useMatch = earlyLower.match(/^(?:use|only use|stick with)\s+(.+)/);
-  const avoidMatch = lateLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+export interface ViolationSignals extends Array<DetectionSignal> {
+  __verboseLog?: VerboseEntry[];
+  __decisions?: ActiveDecision[];
+}
+
+/**
+ * Find an active decision that the new commitment contradicts.
+ */
+function findContradictedDecision(
+  decisions: ActiveDecision[],
+  newCommitment: string,
+): ActiveDecision | undefined {
+  for (const d of decisions) {
+    if (d.supersededAt) continue;
+    if (isContradiction(d.commitment, newCommitment)) return d;
+  }
+  return undefined;
+}
+
+/**
+ * Check if two commitments are aligned (same direction, same topic).
+ */
+function isAligned(a: string, b: string): boolean {
+  const aLower = a.toLowerCase();
+  const bLower = b.toLowerCase();
+
+  // Both "use X" with overlapping subjects
+  const aUse = aLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  const bUse = bLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  if (aUse && bUse) return hasSignificantOverlap(aUse[1], bUse[1]);
+
+  // Both "avoid X" with overlapping subjects
+  const aAvoid = aLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  const bAvoid = bLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
+  if (aAvoid && bAvoid) return hasSignificantOverlap(aAvoid[1], bAvoid[1]);
+
+  return false;
+}
+
+function isContradiction(existing: string, incoming: string): boolean {
+  const existingLower = existing.toLowerCase();
+  const incomingLower = incoming.toLowerCase();
+
+  // "use X" vs "avoid X" / "don't use X" / "never use X"
+  const useMatch = existingLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  const avoidMatch = incomingLower.match(/^(?:avoid|never use|don't use|no)\s+(.+)/);
   if (useMatch && avoidMatch) {
     return hasSignificantOverlap(useMatch[1], avoidMatch[1]);
   }
 
   // Reverse: "avoid X" vs "use X"
-  const earlyAvoid = earlyLower.match(/^(?:avoid|never use|don't use)\s+(.+)/);
-  const lateUse = lateLower.match(/^(?:use|only use|stick with)\s+(.+)/);
-  if (earlyAvoid && lateUse) {
-    return hasSignificantOverlap(earlyAvoid[1], lateUse[1]);
+  const existingAvoid = existingLower.match(/^(?:avoid|never use|don't use|no)\s+(.+)/);
+  const incomingUse = incomingLower.match(/^(?:use|only use|stick with|using)\s+(.+)/);
+  if (existingAvoid && incomingUse) {
+    return hasSignificantOverlap(existingAvoid[1], incomingUse[1]);
   }
 
-  // Same topic, different choice (e.g. "use PostgreSQL" vs "use SQLite")
-  const earlyUse2 = earlyLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
-  const lateUse2 = lateLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
-  if (earlyUse2 && lateUse2 && earlyUse2[2] && lateUse2[2]) {
-    if (hasSignificantOverlap(earlyUse2[2], lateUse2[2]) &&
-        !hasSignificantOverlap(earlyUse2[1], lateUse2[1])) {
+  // Same topic, different choice (e.g. "use PostgreSQL for DB" vs "use SQLite for DB")
+  const existingUse2 = existingLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  const incomingUse2 = incomingLower.match(/^(?:use|using)\s+(.+?)(?:\s+for\s+(.+))?$/);
+  if (existingUse2 && incomingUse2 && existingUse2[2] && incomingUse2[2]) {
+    if (hasSignificantOverlap(existingUse2[2], incomingUse2[2]) &&
+        !hasSignificantOverlap(existingUse2[1], incomingUse2[1])) {
       return true;
     }
   }
@@ -107,21 +203,13 @@ function hasSignificantOverlap(a: string, b: string): boolean {
 }
 
 function checkDirectViolation(text: string, decision: string): string | null {
-  const lower = text.toLowerCase();
   const decLower = decision.toLowerCase();
 
-  // "use Tailwind" but text uses inline styles
-  if (decLower.includes('tailwind') && /style\s*=\s*\{/.test(text)) {
+  if (decLower.includes('tailwind') && !decLower.includes('avoid') && /style\s*=\s*\{/.test(text)) {
     return 'Used inline styles';
   }
 
-  // "avoid inline styles" but text uses them
-  if (decLower.includes('inline style') && decLower.includes('avoid') && /style\s*=\s*\{/.test(text)) {
-    return 'Used inline styles';
-  }
-
-  // "use TypeScript" but imports .js without types
-  if (decLower.includes('typescript') && /require\s*\(/.test(text) && !lower.includes('import')) {
+  if (decLower.includes('typescript') && !decLower.includes('avoid') && /require\s*\(/.test(text) && !text.toLowerCase().includes('import')) {
     return 'Used require() instead of import';
   }
 
@@ -144,6 +232,5 @@ function deduplicateSignals(signals: DetectionSignal[]): DetectionSignal[] {
 export function scoreViolations(signals: DetectionSignal[]): number {
   const violationSignals = signals.filter((s) => s.type === 'violation');
   if (violationSignals.length === 0) return 0;
-  // Each violation adds ~25, capped at 100
   return Math.min(100, violationSignals.length * 25);
 }
